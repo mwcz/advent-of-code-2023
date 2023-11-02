@@ -1,8 +1,8 @@
-#![feature(int_roundings)]
-#![allow(clippy::too_many_arguments)]
 #![allow(clippy::let_and_return)]
 #![allow(clippy::let_unit_value)]
+#![allow(clippy::too_many_arguments)]
 #![allow(unused)]
+#![feature(int_roundings)]
 pub mod answer;
 pub mod d1;
 pub mod d10;

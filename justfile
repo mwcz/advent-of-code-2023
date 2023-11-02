@@ -54,3 +54,11 @@ FORCE_DEFAULT := ""
 # shorthand for cargo run
 @run *ARGS:
   cargo r -- {{ARGS}}
+
+# shorthand for cargo run -r
+@rrun *ARGS:
+  cargo r -r -- {{ARGS}}
+
+# run with console visualization (not all days have this)
+@viz *ARGS:
+  cargo r -r -F visualize -- {{ARGS}}
