@@ -7,6 +7,7 @@ FORCE_DEFAULT := ""
 @day DAY:
   echo "starting day {{DAY}} year $AOC_YEAR"
   just input {{DAY}}
+  just example {{DAY}}
   just template {{DAY}}
   just update_lib {{DAY}}
   just vim {{DAY}}
@@ -25,7 +26,7 @@ FORCE_DEFAULT := ""
 @example DAY:
   if [ ! -f examples/d{{DAY}} ]; then \
     mkdir examples -p 2> /dev/null; \
-    touch examples/{{DAY}}; \
+    touch examples/d{{DAY}}; \
     echo "empty example created: examples/d{{DAY}}"; \
   else \
     echo "example for day {{DAY}} already exists in examples/d{{DAY}}"; \
@@ -52,13 +53,16 @@ FORCE_DEFAULT := ""
   sort -u src/lib.rs -o src/lib.rs
 
 # shorthand for cargo run
-@run *ARGS:
-  cargo r -- {{ARGS}}
+@run DAY *ARGS:
+  cargo r -- -d {{DAY}} {{ARGS}}
 
 # shorthand for cargo run -r
-@rrun *ARGS:
-  cargo r -r -- {{ARGS}}
+@r DAY *ARGS:
+  cargo r -r -- -d {{DAY}} {{ARGS}}
 
 # run with console visualization (not all days have this)
-@viz *ARGS:
-  cargo r -r -F visualize -- {{ARGS}}
+@viz DAY *ARGS:
+  cargo r -r -F visualize -- -d {{DAY}} {{ARGS}}
+
+@watch DAY *ARGS:
+  find src/d{{DAY}}.rs input/d{{DAY}} examples/d{{DAY}} | entr -c just run {{DAY}} {{ARGS}}

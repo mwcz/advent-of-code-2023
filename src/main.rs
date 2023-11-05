@@ -1,8 +1,28 @@
-use argh::FromArgs;
 use std::fs::read_to_string;
 
+const HELP: &str = "\
+Usage: aoc2021 -d <day> [-p <part>] [-e] [-i <input>]
+
+The CLI arguments allowed.
+
+Options:
+  -d, --day         specifies the day
+  -p, --part        specifies the part
+  -e, --example     use the day's example input from examples/
+  -i, --input       specify an alternate input file
+  -h, --help        display usage information
+";
+
+const INPUT_CONFLICT: &str = "\
+Error: -i/--input and -e/--example can't be used together.
+";
+
 fn main() {
-    let args: Args = argh::from_env();
+    let args = parse_args().unwrap_or_else(|_| {
+        println!("Error parsing CLI arguments");
+        print!("{HELP}");
+        std::process::exit(1);
+    });
 
     if args.day == 255 {
         for day in 1..=25 {
@@ -286,21 +306,36 @@ fn run(day: u8, part: u8, input: String) {
 }
 
 /// The CLI arguments allowed.
-#[derive(FromArgs, Debug)]
 struct Args {
     /// specifies the day (255 runs all parts)
-    #[argh(option, short = 'd')]
     day: u8,
-
     /// specifies the part
-    #[argh(option, short = 'p', default = "1")]
     part: u8,
-
     /// use the day's example input from examples/
-    #[argh(switch, short = 'e')]
     example: bool,
-
     /// specify an alternate input file
-    #[argh(option, short = 'i')]
     input: Option<String>,
+}
+
+fn parse_args() -> Result<Args, pico_args::Error> {
+    let mut pargs = pico_args::Arguments::from_env();
+
+    if pargs.contains(["-h", "--help"]) {
+        print!("{HELP}");
+        std::process::exit(0);
+    }
+
+    let args = Args {
+        day: pargs.value_from_str(["-d", "--day"])?,
+        part: pargs.value_from_str(["-p", "--part"]).or(Ok(1))?,
+        example: pargs.contains(["-e", "--example"]),
+        input: pargs.opt_value_from_str(["-i", "--input"])?,
+    };
+
+    if pargs.contains(["-e", "--example"]) && pargs.contains(["-i", "--input"]) {
+        print!("{INPUT_CONFLICT}");
+        std::process::exit(1);
+    }
+
+    Ok(args)
 }

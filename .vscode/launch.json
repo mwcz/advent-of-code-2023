@@ -1,0 +1,16 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "codelldb",
+            "request": "launch",
+            "name": "Debug executable 'aoc2022'",
+            "cwd": "${workspaceFolder}",
+            "program": "${workspaceFolder}/target/debug/aoc2022",
+            "args": [
+                "-d",
+                "1"
+            ]
+        }
+    ]
+}
