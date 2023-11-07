@@ -1,29 +1,15 @@
-use std::fs::read_to_string;
+mod args;
 
-const HELP: &str = "\
-Usage: aoc2021 -d <day> [-p <part>] [-e] [-i <input>]
-
-The CLI arguments allowed.
-
-Options:
-  -d, --day         specifies the day
-  -p, --part        specifies the part
-  -e, --example     use the day's example input from examples/
-  -i, --input       specify an alternate input file
-  -h, --help        display usage information
-";
-
-const INPUT_CONFLICT: &str = "\
-Error: -i/--input and -e/--example can't be used together.
-";
+use std::{fs::read_to_string, process::exit};
 
 fn main() {
-    let args = parse_args().unwrap_or_else(|_| {
-        println!("Error parsing CLI arguments");
-        print!("{HELP}");
+    let args = args::parse_args().unwrap_or_else(|_| {
+        eprintln!("Error: parsing CLI arguments failed");
+        print!("{}", args::HELP);
         std::process::exit(1);
     });
 
+    // day 255 is a magic day number meaning "run all days"
     if args.day == 255 {
         for day in 1..=25 {
             let input =
@@ -45,11 +31,16 @@ fn main() {
         let input = read_to_string(input_file).expect("couldn't read input file");
         run(args.day, args.part, input);
     } else {
-        eprintln!("day must be 1 through 25, or 255 to run all days");
+        eprintln!("Error: DAY must be 1 through 25, or 255 to run all days");
     }
 }
 
 fn run(day: u8, part: u8, input: String) {
+    if ![1, 2].contains(&part) {
+        eprintln!("Error: part must be 1 or 2");
+        exit(1);
+    }
+
     match (day, part) {
         (1, 1) => {
             let parsed = aoc2023::d1::parse(input);
@@ -202,12 +193,12 @@ fn run(day: u8, part: u8, input: String) {
             println!("{output}");
         }
         (16, 1) => {
-            let parsed = aoc2023::d16::parse(&input);
+            let parsed = aoc2023::d16::parse(input);
             let output = aoc2023::d16::part1(parsed);
             println!("{output}");
         }
         (16, 2) => {
-            let parsed = aoc2023::d16::parse(&input);
+            let parsed = aoc2023::d16::parse(input);
             let output = aoc2023::d16::part2(parsed);
             println!("{output}");
         }
@@ -303,39 +294,4 @@ fn run(day: u8, part: u8, input: String) {
         }
         _ => unimplemented!(),
     }
-}
-
-/// The CLI arguments allowed.
-struct Args {
-    /// specifies the day (255 runs all parts)
-    day: u8,
-    /// specifies the part
-    part: u8,
-    /// use the day's example input from examples/
-    example: bool,
-    /// specify an alternate input file
-    input: Option<String>,
-}
-
-fn parse_args() -> Result<Args, pico_args::Error> {
-    let mut pargs = pico_args::Arguments::from_env();
-
-    if pargs.contains(["-h", "--help"]) {
-        print!("{HELP}");
-        std::process::exit(0);
-    }
-
-    let args = Args {
-        day: pargs.value_from_str(["-d", "--day"])?,
-        part: pargs.value_from_str(["-p", "--part"]).or(Ok(1))?,
-        example: pargs.contains(["-e", "--example"]),
-        input: pargs.opt_value_from_str(["-i", "--input"])?,
-    };
-
-    if pargs.contains(["-e", "--example"]) && pargs.contains(["-i", "--input"]) {
-        print!("{INPUT_CONFLICT}");
-        std::process::exit(1);
-    }
-
-    Ok(args)
 }

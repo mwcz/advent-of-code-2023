@@ -43,14 +43,21 @@ FORCE_DEFAULT := ""
     echo "source for {{DAY}} already exists in src/d{{DAY}}.rs"; \
   fi
 
-# open DAY's files in vim (sol'n file, example file, and input file)
+# open DAY's files in vim or neovim (src, input, & example)
 @vim DAY:
-  ~/neovim/bin/nvim src/d{{DAY}}.rs examples/d{{DAY}} input/d{{DAY}} 
+  commands=(${NVIM_BIN:-"nvim"} nvim vim); \
+  for cmd in "${commands[@]}"; do \
+    if command -v "$cmd" > /dev/null; then \
+      echo "opening day {{DAY}}'s files with $cmd"; \
+      just files {{DAY}} | xargs "$cmd"; \
+      break; \
+    fi \
+  done \
 
 # update src/lib.rs with the new day
 @update_lib DAY:
   echo "pub mod d{{DAY}};" >> src/lib.rs
-  sort -u src/lib.rs -o src/lib.rs
+  sort -nu src/lib.rs -o src/lib.rs
 
 # shorthand for cargo run
 @run DAY *ARGS:
@@ -64,5 +71,20 @@ FORCE_DEFAULT := ""
 @viz DAY *ARGS:
   cargo r -r -F visualize -- -d {{DAY}} {{ARGS}}
 
-@watch DAY *ARGS:
-  find src/d{{DAY}}.rs input/d{{DAY}} examples/d{{DAY}} | entr -c just run {{DAY}} {{ARGS}}
+# run CMD when DAY's files change (src, input, & example)
+@watch CMD DAY *ARGS:
+  just files {{DAY}} | entr -c just {{CMD}} {{DAY}} {{ARGS}}
+
+# retrieve the files used for a given day
+@files DAY:
+  { \
+    find src -name "d{{DAY}}.rs"; \
+    echo "examples/d{{DAY}}"; \
+    find examples -name "d{{DAY}}-*"; \
+    find input -name "d{{DAY}}"; \
+  }
+  # the echo adds the example file to the ouput even if it doesn't exist yet
+
+# run tests (using cargo-nextest)
+@test DAY *ARGS:
+  cargo nextest run {{DAY}}p {{ARGS}}

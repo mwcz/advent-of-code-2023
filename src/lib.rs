@@ -3,7 +3,6 @@
 #![allow(clippy::too_many_arguments)]
 #![allow(unused)]
 #![feature(int_roundings)]
-pub mod answer;
 pub mod d1;
 pub mod d10;
 pub mod d11;
