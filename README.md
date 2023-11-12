@@ -19,6 +19,7 @@ Install [justfile](https://just.systems/man/en/) and run `just --list` to get st
 | Run day 21 in release mode    | `just r 21`                                |
 | Run tests | `just test`                                |
 | Run tests for day 13 | `just test 13`                                |
+| Run all tests | `just test_all`                                |
 
 `cargo run` can be used directly, but 
 
