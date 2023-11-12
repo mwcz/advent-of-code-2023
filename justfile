@@ -87,4 +87,8 @@ FORCE_DEFAULT := ""
 
 # run tests (using cargo-nextest)
 @test DAY *ARGS:
-  cargo nextest run {{DAY}}p {{ARGS}}
+  cargo nextest run -E "test(/d{{DAY}}p/)" {{ARGS}}
+
+# run ALL tests (using cargo-nextest)
+@test_all *ARGS:
+  cargo nextest run {{ARGS}}
