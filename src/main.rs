@@ -28,8 +28,14 @@ fn main() {
             format!("./input/d{}", args.day)
         };
 
-        let input = read_to_string(input_file).expect("couldn't read input file");
-        run(args.day, args.part, input);
+        if let Ok(input) = read_to_string(input_file) {
+            run(args.day, args.part, input);
+        } else {
+            eprintln!(
+                "Error: input file for day {} is missing or unreadable",
+                args.day
+            );
+        }
     } else {
         eprintln!("Error: DAY must be 1 through 25, or 255 to run all days");
     }
