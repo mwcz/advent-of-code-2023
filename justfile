@@ -57,7 +57,7 @@ FORCE_DEFAULT := ""
 # update src/lib.rs with the new day
 @update_lib DAY:
   echo "pub mod d{{DAY}};" >> src/lib.rs
-  sort -nu src/lib.rs -o src/lib.rs
+  sed 's/pub mod d\([0-9]\+\);/000\1 &/' src/lib.rs | sort -uh | sed 's/^[0-9]\+ //' > /tmp/aoc_temp && mv /tmp/aoc_temp src/lib.rs
 
 # shorthand for cargo run
 @run DAY *ARGS:
