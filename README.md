@@ -35,14 +35,24 @@ This will do the following actions, only as needed:
 
  1. Download input for day 1 and save it to `input/d1`
  2. Create a blank example file `examples/d1`
- 3. Create `src/d1.rs` (and add the module to `src/lib.rs`)
+ 3. Create `src/d1.rs` from the template at `templates/d.rs` (and add the module to `src/lib.rs`)
  4. Open the source file, input file, and example file in vim
 
 ## Watch for changes
 
-```
-just watch 1
-```
+The `just watch` command can be used to run any other command when a given day's files are changed.  Here are some examples.
+
+| Command | Purpose |
+| - | - |
+| `just watch run 10` | Run day 10 when any of day 10's files change. |
+| `just watch test 10` | Run day 10's tests when any of day 10's files change. |
+| `just watch r 10` | Run day 10 in release mode when any of day 10's files change. |
+
+Day 10's files include `src/d10.rs`, `input/d10`, `examples/d10`, and even `examples/d10-another-example` (the hyphen after the number is required).
+
+If you're curious which files are being watched, try `just files 10` to print the matched files.
+
+**Note**: a running `watch` command will only watch files that existed at the time it was launched.  If new files are added, re-run the `watch` command.
 
 ## Days with multiple examples
 
