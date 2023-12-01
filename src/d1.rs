@@ -3,106 +3,49 @@
 
 use std::{fmt::Display, str::Lines};
 
+use regex::Regex;
+
 type Model = Vec<String>;
-type Answer = u32;
+type Answer = usize;
 
 pub fn parse(input: String) -> Model {
     input.lines().map(|line| line.to_string()).collect()
 }
 
-pub fn part1(input: Model) -> Answer {
-    input
-        .into_iter()
-        .map(|line| {
-            line.chars()
-                .filter_map(|c| c.to_digit(10))
-                .collect::<Vec<u32>>()
-        })
-        .map(|v| 10 * v.first().unwrap() + v.last().unwrap())
-        .sum()
+pub fn part1(model: Model) -> Answer {
+    model.into_iter().map(digitize).sum()
 }
 
-pub fn part2(input: Model) -> Answer {
-    input
-        .into_iter()
-        .map(numberize)
-        .map(|line| {
-            line.chars()
-                .filter_map(|c| c.to_digit(10))
-                .collect::<Vec<u32>>()
-        })
-        .map(|v| 10 * v.first().unwrap() + v.last().unwrap())
-        .sum()
+pub fn part2(model: Model) -> usize {
+    model.into_iter().map(numberize).sum()
 }
 
-fn numberize(s: String) -> String {
-    let mut s = s.to_string();
+const NAMES: [&str; 9] = [
+    "one", "two", "three", "four", "five", "six", "seven", "eight", "nine",
+];
 
-    let matches = [
-        (s.find('1'), false, 1),
-        (s.find('2'), false, 2),
-        (s.find('3'), false, 3),
-        (s.find('4'), false, 4),
-        (s.find('5'), false, 5),
-        (s.find('6'), false, 6),
-        (s.find('7'), false, 7),
-        (s.find('8'), false, 8),
-        (s.find('9'), false, 9),
-        (s.find("one"), true, 1),
-        (s.find("two"), true, 2),
-        (s.find("three"), true, 3),
-        (s.find("four"), true, 4),
-        (s.find("five"), true, 5),
-        (s.find("six"), true, 6),
-        (s.find("seven"), true, 7),
-        (s.find("eight"), true, 8),
-        (s.find("nine"), true, 9),
-        (s.rfind("one"), true, 1),
-        (s.rfind("two"), true, 2),
-        (s.rfind("three"), true, 3),
-        (s.rfind("four"), true, 4),
-        (s.rfind("five"), true, 5),
-        (s.rfind("six"), true, 6),
-        (s.rfind("seven"), true, 7),
-        (s.rfind("eight"), true, 8),
-        (s.rfind("nine"), true, 9),
-    ];
+const DIGITS: [&str; 9] = ["1", "2", "3", "4", "5", "6", "7", "8", "9"];
 
-    let mut matches = matches
-        .into_iter()
-        .filter(|m| m.0.is_some())
-        .collect::<Vec<(Option<usize>, bool, u8)>>();
+fn digitize(s: String) -> usize {
+    let digits: Vec<u32> = s.chars().filter_map(|c| c.to_digit(10)).collect();
+    (10 * digits.first().unwrap() + digits.last().unwrap()) as usize
+}
 
-    matches.sort_by(|a, b| a.0.cmp(&b.0));
+fn numberize(s: String) -> usize {
+    let nums = NAMES.iter().enumerate().chain(DIGITS.iter().enumerate());
 
-    let first = matches.first();
-    let last = matches.last();
+    let (_, first) = nums
+        .clone()
+        .filter_map(|(i, &n)| s.find(n).map(|loc| (loc, i + 1)))
+        .reduce(|a, b| if a.0 < b.0 { a } else { b })
+        .unwrap();
 
-    if first.is_none() && last.is_none() {
-        return s;
-    }
+    let (_, last) = nums
+        .filter_map(|(i, &n)| s.rfind(n).map(|loc| (loc, i + 1)))
+        .reduce(|a, b| if a.0 > b.0 { a } else { b })
+        .unwrap();
 
-    for m in [last, first].into_iter().flatten() {
-        if let (Some(loc), replace, n) = m {
-            let pat = match n {
-                1 => "one",
-                2 => "two",
-                3 => "three",
-                4 => "four",
-                5 => "five",
-                6 => "six",
-                7 => "seven",
-                8 => "eight",
-                9 => "nine",
-                _ => "",
-            };
-            if *replace {
-                s.replace_range(*loc..(loc + pat.len()), &n.to_string());
-            }
-        }
-    }
-
-    s
+    first * 10 + last
 }
 
 #[cfg(test)]
