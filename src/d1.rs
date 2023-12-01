@@ -3,8 +3,6 @@
 
 use std::{fmt::Display, str::Lines};
 
-use regex::Regex;
-
 type Model = Vec<String>;
 type Answer = usize;
 
