@@ -19,4 +19,4 @@ Cargo.lock
 /target
 
 # keep aoc inputs out of the repo
-/inputs
+/input

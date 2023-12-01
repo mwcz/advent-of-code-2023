@@ -4,12 +4,14 @@
         {
             "type": "codelldb",
             "request": "launch",
-            "name": "Debug executable 'aoc2022'",
+            "name": "Debug executable 'aoc2023'",
             "cwd": "${workspaceFolder}",
-            "program": "${workspaceFolder}/target/debug/aoc2022",
+            "program": "${workspaceFolder}/target/debug/aoc2023",
             "args": [
-                "-d",
-                "1"
+                "-d1",
+                "-p2",
+                "-i",
+                "examples/d1-2"
             ]
         }
     ]
