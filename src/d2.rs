@@ -64,9 +64,6 @@ pub struct Game {
 impl Game {
     /// Return Some(id) if the game is possible, otherwise None
     fn is_possible(&self, bag: &Color) -> Option<u32> {
-        if self.id == 38 {
-            dbg!(&self);
-        }
         self.colors
             .iter()
             .all(|color| color.fits_in(bag))
