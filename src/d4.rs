@@ -8,11 +8,11 @@ pub fn parse(input: String) -> Model {
     0
 }
 
-pub fn part1(input: Model) -> Answer {
+pub fn part1(model: Model) -> Answer {
     "incomplete".to_string()
 }
 
-pub fn part2(input: Model) -> Answer {
+pub fn part2(model: Model) -> Answer {
     "incomplete".to_string()
 }
 
