@@ -29,17 +29,17 @@ fn digitize(s: String) -> usize {
     (10 * digits.first().unwrap() + digits.last().unwrap()) as usize
 }
 
-fn numberize(s: String) -> usize {
+fn numberize(line: String) -> usize {
     let nums = NAMES.iter().enumerate().chain(DIGITS.iter().enumerate());
 
     let (_, first) = nums
         .clone()
-        .filter_map(|(i, &n)| s.find(n).map(|loc| (loc, i + 1)))
+        .filter_map(|(i, &n)| line.find(n).map(|loc| (loc, i + 1)))
         .reduce(|a, b| if a.0 < b.0 { a } else { b })
         .unwrap();
 
     let (_, last) = nums
-        .filter_map(|(i, &n)| s.rfind(n).map(|loc| (loc, i + 1)))
+        .filter_map(|(i, &n)| line.rfind(n).map(|loc| (loc, i + 1)))
         .reduce(|a, b| if a.0 > b.0 { a } else { b })
         .unwrap();
 
