@@ -1,19 +1,33 @@
 //! A solution to day 2 year 2023.
 //! https://adventofcode.com/2023/day/2
 
-type Model = u8;
-type Answer = String;
+type Model = Vec<Vec<Color>>;
+type Answer = u32;
 
 pub fn parse(input: String) -> Model {
-    0
+    input.lines().map(line_to_color)
 }
 
-pub fn part1(input: Model) -> Answer {
+pub fn part1(model: Model) -> Answer {
     "incomplete".to_string()
 }
 
-pub fn part2(input: Model) -> Answer {
+pub fn part2(model: Model) -> Answer {
     "incomplete".to_string()
+}
+
+struct Color {
+    r: u32,
+    g: u32,
+    b: u32,
+}
+
+fn line_to_color(line: &str) -> Vec<Color> {
+    let mut chars = line.chars();
+
+    chars.take_while(|c| !c.is_digit(10));
+
+    vec![]
 }
 
 // #[cfg(test)]
