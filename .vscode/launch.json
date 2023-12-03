@@ -9,8 +9,7 @@
             "program": "${workspaceFolder}/target/debug/aoc2023",
             "args": [
                 "-d3",
-                "-p1",
-                "-e"
+                "-p1"
             ]
         }
     ]

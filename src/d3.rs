@@ -1,6 +1,8 @@
 //! A solution to day 3 year 2023.
 //! https://adventofcode.com/2023/day/3
 
+use std::collections::HashMap;
+
 type Model = Vec<Vec<char>>;
 type Answer = u32;
 
@@ -9,64 +11,25 @@ pub fn parse(input: String) -> Model {
 }
 
 pub fn part1(model: Model) -> Answer {
-    let ymax = model.len() - 1;
-    let xmax = model[0].len() - 1;
-
-    fn is_symbol(c: char) -> bool {
-        !c.is_ascii_digit() && c != '.'
+    fn is_symbol(c: &char) -> bool {
+        !c.is_ascii_digit() && c != &'.'
     }
 
     let is_symbol_adjacent = |x: usize, y: usize| {
-        if y == 137 && x == 65 {
-            println!("STOP!");
-        }
-        let y_vals = [
-            y.checked_sub(1),
-            Some(y),
-            ((y + 1) <= ymax).then_some(y + 1),
+        [
+            (x.saturating_sub(1), y.saturating_sub(1)),
+            (x, y.saturating_sub(1)),
+            (x + 1, y.saturating_sub(1)),
+            (x.saturating_sub(1), y),
+            (x + 1, y),
+            (x.saturating_sub(1), y + 1),
+            (x, y + 1),
+            (x + 1, y + 1),
         ]
+        .map(|(x, y)| model.get(y).and_then(|row| row.get(x)))
         .into_iter()
-        .flatten();
-
-        let x_vals = [
-            x.checked_sub(1),
-            Some(x),
-            ((x + 1) <= xmax).then_some(x + 1),
-        ]
-        .into_iter()
-        .flatten();
-
-        for y_adj in y_vals {
-            for x_adj in x_vals.clone() {
-                if is_symbol(model[y_adj][x_adj]) {
-                    return true;
-                }
-            }
-        }
-
-        false
-
-        // model[y - 1][x - 1];
-        // model[y - 1][x + 0];
-        // model[y - 1][x + 1];
-        // model[y + 0][x - 1];
-        // model[y + 0][x + 1];
-        // model[y + 1][x - 1];
-        // model[y + 1][x + 0];
-        // model[y + 1][x + 1];
-        //
-        // if y > 0 {
-        //     let tl = model[y - 1][x - 1];
-        //     let tm = model[y - 1][x + 0];
-        //     let tr = model[y - 1][x + 1];
-        // }
-        // let l = model[y + 0][x - 1];
-        // let r = model[y + 0][x + 1];
-        // if y < ymax {
-        //     let bl = model[y + 1][x - 1];
-        //     let bm = model[y + 1][x + 0];
-        //     let br = model[y + 1][x + 1];
-        // }
+        .flatten()
+        .any(is_symbol)
     };
 
     let mut part_nums: Vec<u32> = vec![];
@@ -83,13 +46,10 @@ pub fn part1(model: Model) -> Answer {
                     digits.push(c)
                 }
                 _ => {
-                    // println!("number: {:?}", digits);
-                    // turn chars into a number
                     if !digits.is_empty() && is_part_num {
                         let n = to_number(&digits);
 
                         part_nums.push(n);
-                        println!("SUM {n}");
                     }
 
                     // number ended, clear this flag
@@ -97,6 +57,12 @@ pub fn part1(model: Model) -> Answer {
                     digits.clear();
                 }
             }
+        }
+
+        if !digits.is_empty() && is_part_num {
+            let n = to_number(&digits);
+
+            part_nums.push(n);
         }
     }
 
@@ -117,45 +83,97 @@ fn to_number(digits: &[&char]) -> u32 {
 }
 
 pub fn part2(model: Model) -> Answer {
-    0
+    let get_adj_gear = |x: usize, y: usize| -> Option<(usize, usize)> {
+        [
+            (x.saturating_sub(1), y.saturating_sub(1)),
+            (x, y.saturating_sub(1)),
+            (x + 1, y.saturating_sub(1)),
+            (x.saturating_sub(1), y),
+            (x + 1, y),
+            (x.saturating_sub(1), y + 1),
+            (x, y + 1),
+            (x + 1, y + 1),
+        ]
+        .map(|(x, y)| ((x, y), model.get(y).and_then(|row| row.get(x))))
+        .into_iter()
+        .filter(|m| m.1.is_some() && m.1.unwrap() == &'*')
+        .map(|m| m.0)
+        .next()
+    };
+
+    let mut gear_ratios: HashMap<(usize, usize), Vec<u32>> = HashMap::new();
+
+    for (y, row) in model.iter().enumerate() {
+        let mut digits = vec![];
+        let mut gear_loc: Option<(usize, usize)> = None;
+        for (x, c) in row.iter().enumerate() {
+            match c {
+                '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' => {
+                    if let Some((x, y)) = get_adj_gear(x, y) {
+                        gear_loc = Some((x, y));
+                    }
+                    digits.push(c)
+                }
+                _ => {
+                    // turn chars into a number
+                    if !digits.is_empty() && gear_loc.is_some() {
+                        let n = to_number(&digits);
+
+                        // add entry to hashmap or update
+                        let entry = gear_ratios.entry(gear_loc.unwrap()).or_default();
+                        entry.push(n);
+                    }
+
+                    // number ended, clear this flag
+                    gear_loc = None;
+                    digits.clear();
+                }
+            }
+        }
+
+        if !digits.is_empty() && gear_loc.is_some() {
+            let n = to_number(&digits);
+            let entry = gear_ratios.entry(gear_loc.unwrap()).or_default();
+            entry.push(n);
+        }
+    }
+
+    dbg!(&gear_ratios);
+
+    gear_ratios
+        .values()
+        .filter(|ratios| ratios.len() == 2)
+        .inspect(|f| {
+            dbg!(&f);
+        })
+        .map(|ratios| ratios[0] * ratios[1])
+        .sum()
 }
 
-// #[cfg(test)]
-// mod tests {
-//     use super::*;
-//
-//     const INPUT: &str = include_str!("../input/d3");
-//     const EXAMPLE: &str = include_str!("../examples/d3");
-//
-//     // #[test]
-//     // fn d3p1_example_test() {
-//     //     assert_eq!(
-//     //         part1(parse(EXAMPLE.to_string())),
-//     //         "put part 1 example answer here"
-//     //     );
-//     // }
-//     //
-//     // #[test]
-//     // fn d3p1_input_test() {
-//     //     assert_eq!(
-//     //         part1(parse(INPUT.to_string())),
-//     //         "put part 1 final answer here"
-//     //     );
-//     // }
-//     //
-//     // #[test]
-//     // fn d3p2_example_test() {
-//     //     assert_eq!(
-//     //         part2(parse(EXAMPLE.to_string())),
-//     //         "put part 2 example answer here"
-//     //     );
-//     // }
-//     //
-//     // #[test]
-//     // fn d3p2_input_test() {
-//     //     assert_eq!(
-//     //         part2(parse(INPUT.to_string())),
-//     //         "put part 2 final answer here"
-//     //     );
-//     // }
-// }
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const INPUT: &str = include_str!("../input/d3");
+    const EXAMPLE: &str = include_str!("../examples/d3");
+
+    #[test]
+    fn d3p1_example_test() {
+        assert_eq!(part1(parse(EXAMPLE.to_string())), 4361);
+    }
+
+    #[test]
+    fn d3p1_input_test() {
+        assert_eq!(part1(parse(INPUT.to_string())), 509115);
+    }
+
+    #[test]
+    fn d3p2_example_test() {
+        assert_eq!(part2(parse(EXAMPLE.to_string())), 467835);
+    }
+
+    #[test]
+    fn d3p2_input_test() {
+        assert_eq!(part2(parse(INPUT.to_string())), 75220503);
+    }
+}
