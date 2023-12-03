@@ -35,7 +35,7 @@ pub fn part1(model: Model) -> Answer {
     let mut part_nums: Vec<u32> = vec![];
 
     for (y, row) in model.iter().enumerate() {
-        let mut digits = vec![];
+        let mut num = 0;
         let mut is_part_num = false;
         for (x, c) in row.iter().enumerate() {
             match c {
@@ -43,26 +43,22 @@ pub fn part1(model: Model) -> Answer {
                     if is_symbol_adjacent(x, y) {
                         is_part_num = true;
                     }
-                    digits.push(c)
+                    num = num * 10 + c.to_digit(10).unwrap();
                 }
                 _ => {
-                    if !digits.is_empty() && is_part_num {
-                        let n = to_number(&digits);
-
-                        part_nums.push(n);
+                    if is_part_num {
+                        part_nums.push(num);
                     }
 
                     // number ended, clear this flag
                     is_part_num = false;
-                    digits.clear();
+                    num = 0;
                 }
             }
         }
 
-        if !digits.is_empty() && is_part_num {
-            let n = to_number(&digits);
-
-            part_nums.push(n);
+        if is_part_num {
+            part_nums.push(num);
         }
     }
 
