@@ -26,12 +26,7 @@ pub fn parse(input: String) -> Model {
 pub fn part1(cards: Model) -> Answer {
     let mut total_score = 0;
     for (wins, haves) in cards {
-        let mut card_score = 0;
-        for n in haves {
-            if wins.contains(&n) {
-                card_score += 1;
-            }
-        }
+        let card_score = haves.iter().filter(|h| wins.contains(h)).count() as u32;
         if card_score > 0 {
             total_score += 2u32.pow(card_score - 1);
         }
@@ -64,11 +59,9 @@ pub fn part2(mut cards: Model) -> Answer {
         let matches = cards[i].matches;
         let copies = cards[i].copies;
 
-        for _ in 0..copies {
-            for j in 1..=matches {
-                if let Some(c) = cards.get_mut(i + j) {
-                    c.copies += 1;
-                }
+        for j in 1..=matches {
+            if let Some(c) = cards.get_mut(i + j) {
+                c.copies += copies;
             }
         }
 
