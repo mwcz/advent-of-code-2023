@@ -54,8 +54,7 @@ pub fn part2(mut cards: Model) -> Answer {
         })
         .collect();
 
-    let mut i = 0;
-    loop {
+    for i in 0..cards.len() {
         let matches = cards[i].matches;
         let copies = cards[i].copies;
 
@@ -63,11 +62,6 @@ pub fn part2(mut cards: Model) -> Answer {
             if let Some(c) = cards.get_mut(i + j) {
                 c.copies += copies;
             }
-        }
-
-        i += 1;
-        if i == cards.len() {
-            break;
         }
     }
 
