@@ -9,7 +9,7 @@ FORCE_DEFAULT := ""
   just input {{DAY}}
   just example {{DAY}}
   just template {{DAY}}
-  just update_lib {{DAY}}
+  #just update_lib {{DAY}}
   just vim {{DAY}}
 
 # download DAY's input file (unless it exists already) (requires AOC_SESSION env)

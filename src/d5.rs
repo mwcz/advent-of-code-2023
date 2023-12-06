@@ -25,6 +25,20 @@ impl Almanac {
         }
         n
     }
+    fn get_seed(&self, loc: u64) -> u64 {
+        let mut n = loc;
+
+        let mut rev = Category::ORDERED;
+        rev.reverse();
+
+        for pair in rev.windows(2) {
+            let src = pair[0];
+            let dst = pair[1];
+            n = self.maps.get(&(dst, src)).unwrap().rev_lookup(n);
+        }
+
+        n
+    }
 }
 
 impl From<&str> for Almanac {
@@ -82,6 +96,13 @@ impl Map {
             .find_map(|mapping| mapping.lookup(n))
             .unwrap_or(n)
     }
+    fn rev_lookup(&self, n: u64) -> u64 {
+        self.mappings
+            .iter()
+            // find the first mapping whose range contained n
+            .find_map(|mapping| mapping.rev_lookup(n))
+            .unwrap_or(n)
+    }
 }
 
 #[derive(Debug, Eq, PartialEq)]
@@ -95,6 +116,13 @@ impl Mapping {
         if self.src_range.contains(&n) {
             let offset = n - self.src_range.start;
             Some(self.dst_range.start + offset)
+        } else {
+            None
+        }
+    }
+    fn rev_lookup(&self, n: u64) -> Option<u64> {
+        if self.dst_range.contains(&n) {
+            Some(self.src_range.start + n - self.dst_range.start)
         } else {
             None
         }
@@ -174,16 +202,58 @@ pub fn part2(almanac: Model) -> Answer {
         .seeds
         .chunks(2)
         .enumerate()
+        .par_bridge()
         .flat_map(|(i, pair)| {
-            println!(
-                "Getting loc for {} seeds in range {:?}",
-                pair[1],
-                (pair[0]..(pair[0] + pair[1]))
-            );
-            (pair[0]..(pair[0] + pair[1])).map(|n| almanac.get_loc(n))
+            // println!(
+            //     "Getting loc for {} seeds in range {:?}",
+            //     pair[1],
+            //     (pair[0]..(pair[0] + pair[1]))
+            // );
+            let seeds = (pair[0]..(pair[0] + pair[1]))
+                .into_par_iter()
+                .map(|n| almanac.get_loc(n));
+            // println!("seeds: {:?}", seeds);
+            seeds.collect::<Vec<u64>>()
         })
         .min()
         .unwrap()
+
+    // println!("1");
+    // let seed_ranges: Vec<u64> = almanac
+    //     .seeds
+    //     .chunks(2)
+    //     .par_bridge()
+    //     .flat_map(|pair| (pair[0]..(pair[0] + pair[1])))
+    //     .collect();
+    //
+    // println!("2");
+    // let loc_max: u64 = almanac
+    //     .maps
+    //     .values()
+    //     .filter(|map| map.dst == Category::Location)
+    //     // .flat_map(|m| m.mappings.iter().map(|mapping| mapping.dst_range.clone()))
+    //     .flat_map(|m| m.mappings.iter().map(|mapping| mapping.dst_range.end))
+    //     .par_bridge()
+    //     .max()
+    //     .unwrap();
+    //
+    // println!("3");
+    // let loc_seeds: Vec<(u64, u64)> = (0..loc_max)
+    //     .into_par_iter()
+    //     .map(|loc| (loc, almanac.get_seed(loc)))
+    //     .collect();
+    //
+    // println!("4");
+    // let mut matching_seeds: Vec<(u64, u64)> = loc_seeds
+    //     .into_iter()
+    //     .filter(|s| seed_ranges.contains(&s.1))
+    //     .collect();
+    //
+    // println!("5");
+    // matching_seeds.sort_by(|(loc1, seed1), (loc2, seed2)| loc1.cmp(loc2));
+    //
+    // println!("6");
+    // matching_seeds.first().unwrap().0
 }
 
 #[cfg(test)]
@@ -209,8 +279,8 @@ mod tests {
     }
 
     // commented to prevent it from being included when running all tests because it's too inefficient
-    // #[test]
-    // fn d5p2_input_test() {
-    //     assert_eq!(part2(parse(INPUT.to_string())), 77435348);
-    // }
+    #[test]
+    fn d5p2_input_test() {
+        assert_eq!(part2(parse(INPUT.to_string())), 77435348);
+    }
 }
