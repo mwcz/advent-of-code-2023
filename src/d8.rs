@@ -1,19 +1,107 @@
 //! A solution to day 8 year 2023.
 //! https://adventofcode.com/2023/day/8
 
-type Model = u8;
-type Answer = String;
+use std::{collections::HashMap, time::Duration};
+
+type Model = Map;
+type Answer = u32;
+
+const START: &str = "AAA";
+const END: &str = "ZZZ";
 
 pub fn parse(input: String) -> Model {
-    0
+    let (dirs, nodes) = input.split_once("\n\n").unwrap();
+
+    let dirs = dirs.chars().map(Dir::from).collect();
+
+    let nodes = nodes
+        .lines()
+        .map(|line| {
+            let (from, to) = line.split_once(" = ").unwrap();
+            (
+                from.to_string(),
+                (to[1..4].to_string(), to[6..9].to_string()),
+            )
+        })
+        .collect();
+
+    Map { dirs, nodes }
 }
 
 pub fn part1(model: Model) -> Answer {
-    "incomplete".to_string()
+    dbg!(&model);
+
+    let mut pos = START;
+    let mut steps = 0;
+    for mov in model.dirs.iter().cycle() {
+        let dirs = model.nodes.get(pos).unwrap();
+        pos = match mov {
+            Dir::L => &dirs.0,
+            Dir::R => &dirs.1,
+        };
+
+        steps += 1;
+
+        if pos == END {
+            break;
+        }
+    }
+
+    steps
 }
 
 pub fn part2(model: Model) -> Answer {
-    "incomplete".to_string()
+    let mut posi: Vec<_> = model
+        .nodes
+        .iter()
+        .filter(|c| c.0.ends_with('A'))
+        .map(|c| c.0)
+        .collect();
+
+    // println!("starting positions: {:?}", posi);
+    let mut steps = 0;
+    for mov in model.dirs.iter().cycle() {
+        // std::thread::sleep(Duration::from_millis(300));
+        let posi2: Vec<_> = std::mem::take(&mut posi);
+        for pos in posi2 {
+            let dirs = model.nodes.get(pos).unwrap();
+            posi.push(match mov {
+                Dir::L => &dirs.0,
+                Dir::R => &dirs.1,
+            });
+        }
+        // println!("current positions: {:?}", posi);
+
+        steps += 1;
+
+        if posi.iter().all(|node| node.ends_with('Z')) {
+            break;
+        }
+    }
+
+    steps
+}
+
+#[derive(Debug)]
+pub struct Map {
+    dirs: Vec<Dir>,
+    nodes: HashMap<String, (String, String)>,
+}
+
+#[derive(Debug)]
+enum Dir {
+    L,
+    R,
+}
+
+impl From<char> for Dir {
+    fn from(value: char) -> Self {
+        match value {
+            'R' => Dir::R,
+            'L' => Dir::L,
+            _ => panic!("invalid direction: {value}"),
+        }
+    }
 }
 
 // #[cfg(test)]

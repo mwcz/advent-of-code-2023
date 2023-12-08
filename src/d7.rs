@@ -39,16 +39,7 @@ pub fn part1(input: Model) -> Answer {
 }
 
 pub fn part2(input: Model) -> Answer {
-    let mut hands: Vec<Hand> = input
-        .lines()
-        .map(|h| {
-            let t = Hand::from_part2(h);
-            if t.cards.contains(&1) {
-                println!("{h} -> {t:?}");
-            }
-            t
-        })
-        .collect();
+    let mut hands: Vec<Hand> = input.lines().map(Hand::from_part2).collect();
     hands.sort_by(|a, b| match a._type.partial_cmp(&b._type) {
         Some(ord) => match ord {
             Ordering::Equal => {
@@ -56,11 +47,9 @@ pub fn part2(input: Model) -> Answer {
                 for (card_a, card_b) in a.cards.iter().zip(&b.cards) {
                     match card_a.cmp(card_b) {
                         Ordering::Less => {
-                            println!("{:?} < {:?}\n", a.cards, b.cards);
                             return Ordering::Less;
                         }
                         Ordering::Greater => {
-                            println!("{:?} < {:?}\n", b.cards, a.cards);
                             return Ordering::Greater;
                         }
                         Ordering::Equal => {}
@@ -222,7 +211,8 @@ impl HandType {
             return HandType::ThreeOfAKind;
         }
 
-        let is_two_pair = maxlen == 2 && jokers >= 1;
+        let pairs = groups.iter().filter(|group| group.len() == 2).count();
+        let is_two_pair = (maxlen == 2 && jokers >= 1) || pairs == 2;
         if is_two_pair {
             return HandType::TwoPair;
         }

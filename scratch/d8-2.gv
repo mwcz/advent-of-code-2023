@@ -1,0 +1,17 @@
+digraph {
+
+AAA -> BBB
+AAA -> CCC
+BBB -> DDD
+BBB -> EEE
+CCC -> ZZZ
+CCC -> GGG
+DDD -> DDD
+DDD -> DDD
+EEE -> EEE
+EEE -> EEE
+GGG -> GGG
+GGG -> GGG
+ZZZ -> ZZZ
+ZZZ -> ZZZ
+}
