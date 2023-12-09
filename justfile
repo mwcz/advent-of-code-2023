@@ -89,6 +89,6 @@ FORCE_DEFAULT := ""
 @test DAY *ARGS:
   cargo nextest run -E "test(/d{{DAY}}p/)" {{ARGS}}
 
-# run ALL tests (using cargo-nextest)
+# run ALL non-slow tests (put "slow" in slow test names to skip them)
 @test_all *ARGS:
-  cargo nextest run {{ARGS}}
+  cargo nextest run -E "not test(slow)" {{ARGS}}

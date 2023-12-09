@@ -280,7 +280,7 @@ mod tests {
 
     // commented to prevent it from being included when running all tests because it's too inefficient
     #[test]
-    fn d5p2_input_test() {
+    fn d5p2_input_slow_test() {
         assert_eq!(part2(parse(INPUT.to_string())), 77435348);
     }
 }
