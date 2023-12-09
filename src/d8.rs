@@ -58,19 +58,25 @@ pub fn part2(model: Model) -> Answer {
         .map(|c| c.0)
         .collect();
 
-    // println!("starting positions: {:?}", posi);
+    println!("starting positions: {:?}", posi);
     let mut steps = 0;
+    let mut cycles = vec![vec![0; 0]; posi.len()];
+
     for mov in model.dirs.iter().cycle() {
         // std::thread::sleep(Duration::from_millis(300));
-        let posi2: Vec<_> = std::mem::take(&mut posi);
-        for pos in posi2 {
-            let dirs = model.nodes.get(pos).unwrap();
-            posi.push(match mov {
+        // let posi2: Vec<_> = std::mem::take(&mut posi);
+        for (i, pos) in posi.iter_mut().enumerate() {
+            let dirs = model.nodes.get(*pos).unwrap();
+            *pos = match mov {
                 Dir::L => &dirs.0,
                 Dir::R => &dirs.1,
-            });
+            };
+
+            if pos.ends_with('Z') {
+                cycles[i].push(steps);
+            }
         }
-        // println!("current positions: {:?}", posi);
+        println!("current positions: {:?}", posi);
 
         steps += 1;
 
@@ -78,6 +84,21 @@ pub fn part2(model: Model) -> Answer {
             break;
         }
     }
+
+    // let cycle_lens: Vec<Vec<_>> = cycles
+    //     .into_iter()
+    //     .map(|subg| subg.chunks(2).map(|&[a, b]| b - a))
+    //     .collect();
+    //
+
+    let first_cycle: Vec<_> = cycles[0].windows(2).map(|pair| pair[1] - pair[0]).collect();
+    dbg!(&first_cycle);
+
+    let cycles: Vec<Vec<_>> = cycles
+        .iter()
+        .map(|cycle| cycle.windows(2).map(|pair| pair[1] - pair[0]).collect())
+        .collect();
+    dbg!(&cycles);
 
     steps
 }
