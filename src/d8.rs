@@ -4,7 +4,7 @@
 use std::{collections::HashMap, time::Duration};
 
 type Model = Map;
-type Answer = u32;
+type Answer = usize;
 
 const START: &str = "AAA";
 const END: &str = "ZZZ";
@@ -58,11 +58,12 @@ pub fn part2(model: Model) -> Answer {
         .map(|c| c.0)
         .collect();
 
-    println!("starting positions: {:?}", posi);
-    let mut steps = 0;
-    let mut cycles = vec![vec![0; 0]; posi.len()];
+    let mut cycles = vec![0; posi.len()];
+    let mut last_zs = vec![0; posi.len()];
+    let starts = posi.clone();
 
-    for mov in model.dirs.iter().cycle() {
+    for (i, mov) in model.dirs.iter().cycle().enumerate() {
+        let step = i + 1;
         // std::thread::sleep(Duration::from_millis(300));
         // let posi2: Vec<_> = std::mem::take(&mut posi);
         for (i, pos) in posi.iter_mut().enumerate() {
@@ -73,34 +74,22 @@ pub fn part2(model: Model) -> Answer {
             };
 
             if pos.ends_with('Z') {
-                cycles[i].push(steps);
+                let last_z = last_zs[i];
+                let this_cycle = step - last_z;
+                let last_cycle = cycles[i];
+                if last_cycle != this_cycle {
+                    cycles[i] = this_cycle;
+                }
             }
         }
-        println!("current positions: {:?}", posi);
 
-        steps += 1;
-
-        if posi.iter().all(|node| node.ends_with('Z')) {
+        // if all cycles are nonzero, we're done
+        if cycles.iter().all(|&c| c != 0) {
             break;
         }
     }
 
-    // let cycle_lens: Vec<Vec<_>> = cycles
-    //     .into_iter()
-    //     .map(|subg| subg.chunks(2).map(|&[a, b]| b - a))
-    //     .collect();
-    //
-
-    let first_cycle: Vec<_> = cycles[0].windows(2).map(|pair| pair[1] - pair[0]).collect();
-    dbg!(&first_cycle);
-
-    let cycles: Vec<Vec<_>> = cycles
-        .iter()
-        .map(|cycle| cycle.windows(2).map(|pair| pair[1] - pair[0]).collect())
-        .collect();
-    dbg!(&cycles);
-
-    steps
+    cycles.into_iter().reduce(lcm).unwrap()
 }
 
 #[derive(Debug)]
@@ -123,6 +112,22 @@ impl From<char> for Dir {
             _ => panic!("invalid direction: {value}"),
         }
     }
+}
+
+pub fn gcd(a: usize, b: usize) -> usize {
+    let mut a = a;
+    let mut b = b;
+    while a % b != 0 {
+        let tmp = b;
+        b = a % b;
+        a = tmp;
+    }
+    b
+}
+
+pub fn lcm(a: usize, b: usize) -> usize {
+    let g = gcd(a, b);
+    (a * b) / g
 }
 
 // #[cfg(test)]
