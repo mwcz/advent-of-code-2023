@@ -130,42 +130,37 @@ pub fn lcm(a: usize, b: usize) -> usize {
     (a * b) / g
 }
 
-// #[cfg(test)]
-// mod tests {
-//     use super::*;
-//
-//     const INPUT: &str = include_str!("../input/d8");
-//     const EXAMPLE: &str = include_str!("../examples/d8");
-//
-//     // #[test]
-//     // fn d8p1_example_test() {
-//     //     assert_eq!(
-//     //         part1(parse(EXAMPLE.to_string())),
-//     //         "put part 1 example answer here"
-//     //     );
-//     // }
-//     //
-//     // #[test]
-//     // fn d8p1_input_test() {
-//     //     assert_eq!(
-//     //         part1(parse(INPUT.to_string())),
-//     //         "put part 1 final answer here"
-//     //     );
-//     // }
-//     //
-//     // #[test]
-//     // fn d8p2_example_test() {
-//     //     assert_eq!(
-//     //         part2(parse(EXAMPLE.to_string())),
-//     //         "put part 2 example answer here"
-//     //     );
-//     // }
-//     //
-//     // #[test]
-//     // fn d8p2_input_test() {
-//     //     assert_eq!(
-//     //         part2(parse(INPUT.to_string())),
-//     //         "put part 2 final answer here"
-//     //     );
-//     // }
-// }
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const INPUT: &str = include_str!("../input/d8");
+    const EXAMPLE1: &str = include_str!("../examples/d8");
+    const EXAMPLE2: &str = include_str!("../examples/d8-2");
+    const EXAMPLE3: &str = include_str!("../examples/d8-3");
+
+    #[test]
+    fn d8p1_example_1_test() {
+        assert_eq!(part1(parse(EXAMPLE1.to_string())), 2);
+    }
+
+    #[test]
+    fn d8p1_example_2_test() {
+        assert_eq!(part1(parse(EXAMPLE2.to_string())), 6);
+    }
+
+    #[test]
+    fn d8p1_input_test() {
+        assert_eq!(part1(parse(INPUT.to_string())), 17263);
+    }
+
+    #[test]
+    fn d8p2_example_test() {
+        assert_eq!(part2(parse(EXAMPLE3.to_string())), 6);
+    }
+
+    #[test]
+    fn d8p2_input_test() {
+        assert_eq!(part2(parse(INPUT.to_string())), 14631604759649);
+    }
+}
