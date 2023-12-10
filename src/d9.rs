@@ -19,29 +19,15 @@ pub fn part1(layers: Model) -> Answer {
     let mut sum: i32 = 0;
 
     for layer in &layers {
-        println!();
         let diffs = diff_until_zero(layer);
         let mut xx = vec![0; diffs.len()];
-
-        for (i, diff) in diffs.iter().enumerate() {
-            println!("{}{:?}", " ".repeat(i), diff);
-        }
 
         let mut xprev = 0;
         for (i, x) in xx[1..].iter_mut().enumerate().rev() {
             *x = xprev + diffs[i].last().unwrap();
             xprev = *x;
-            println!("xx[{i}] = {x}");
         }
 
-        // let xx: Vec<i32> = xx[1..]
-        //     .iter()
-        //     .rev()
-        //     .enumerate()
-        //     .map(|(i, x)| xx[i + 1].clone() + diffs[i].last().unwrap())
-        //     .collect();
-        //
-        println!("xx = {xx:?}");
         sum += xprev;
     }
 
@@ -49,30 +35,11 @@ pub fn part1(layers: Model) -> Answer {
 }
 
 pub fn part2(mut layers: Model) -> Answer {
-    let mut sum: i32 = 0;
-
     for layer in layers.iter_mut() {
         layer.reverse();
-        println!();
-        let diffs = diff_until_zero(layer);
-        let mut xx = vec![0; diffs.len()];
-
-        for (i, diff) in diffs.iter().enumerate() {
-            println!("{}{:?}", " ".repeat(i), diff);
-        }
-
-        let mut xprev = 0;
-        for (i, x) in xx[1..].iter_mut().enumerate().rev() {
-            *x = xprev + diffs[i].last().unwrap();
-            xprev = *x;
-            println!("xx[{i}] = {x}");
-        }
-
-        println!("xx = {xx:?}");
-        sum += xprev;
     }
 
-    sum
+    part1(layers)
 }
 
 fn diff_until_zero(seq: &[i32]) -> Vec<Vec<i32>> {
