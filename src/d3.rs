@@ -76,7 +76,7 @@ pub fn part2(model: Model) -> Answer {
             .adj(x, y)
             .cells
             .into_iter()
-            .filter_map(|cello| cello.map(|cell| (cell.data == '*').then(|| cell.pos)))
+            .filter_map(|cello| cello.map(|cell| (cell.data == '*').then_some(cell.pos)))
             .flatten()
             .next()
     };

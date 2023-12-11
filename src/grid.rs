@@ -62,7 +62,7 @@ where
             for cell in row {
                 write!(f, "{cell}")?;
             }
-            println!();
+            writeln!(f)?;
         }
         Ok(())
     }
