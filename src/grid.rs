@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use crate::point::Point;
 
 pub struct Grid<T: Copy> {
@@ -48,6 +50,21 @@ impl<T: Copy> Grid<T> {
                 })
             }),
         )
+    }
+}
+
+impl<T> Display for Grid<T>
+where
+    T: Display + Copy,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        for row in &self.cells {
+            for cell in row {
+                write!(f, "{cell}")?;
+            }
+            println!();
+        }
+        Ok(())
     }
 }
 
