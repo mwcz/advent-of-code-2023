@@ -1,8 +1,10 @@
-pub struct Grid<T> {
+use crate::point::Point;
+
+pub struct Grid<T: Copy> {
     pub cells: Vec<Vec<T>>,
 }
 
-impl<T> Grid<T> {
+impl<T: Copy> Grid<T> {
     pub fn new(cells: Vec<Vec<T>>) -> Self {
         Self { cells }
     }
@@ -37,20 +39,39 @@ impl<T> Grid<T> {
             ]
             .map(|(adj_x, adj_y)| {
                 adj_x.and_then(|adj_x| {
-                    adj_y.and_then(|adj_y| self.cells.get(adj_y).and_then(|row| row.get(adj_x)))
+                    adj_y.and_then(|adj_y| {
+                        self.cells.get(adj_y).and_then(|row| {
+                            row.get(adj_x)
+                                .map(|cell_data| Cell::new([adj_x, adj_y].into(), *cell_data))
+                        })
+                    })
                 })
             }),
         )
     }
 }
 
+/// A representation of cells adjacent to a point.  Produced by Grid::adj.
 #[derive(PartialEq, Debug)]
-pub struct Adj<'a, T> {
-    pub cells: [Option<&'a T>; 8],
+pub struct Adj<T: Copy> {
+    pub cells: [Option<Cell<T>>; 8],
 }
 
-impl<'a, T> Adj<'a, T> {
-    pub fn new(cells: [Option<&'a T>; 8]) -> Self {
+/// A cell in a grid, containing some data and a position within the grid.
+#[derive(PartialEq, Debug)]
+pub struct Cell<T> {
+    pub pos: Point<2>,
+    pub data: T,
+}
+
+impl<T> Cell<T> {
+    pub fn new(pos: Point<2>, data: T) -> Self {
+        Self { pos, data }
+    }
+}
+
+impl<T: Copy> Adj<T> {
+    pub fn new(cells: [Option<Cell<T>>; 8]) -> Self {
         Self { cells }
     }
     // TODO add up_left(), up(), etc?
@@ -82,18 +103,19 @@ mod grid_tests {
         assert_eq!(
             g.adj(0, 0),
             Adj::new([
-                None, None, None,
-                None,       Some(&2),
-                None, None, None,
+                None,                              None,                              None,
+                None,                                                                 Some(Cell::new([1,0].into(), 2)),
+                None,                              None,                              None,
             ])
         );
+        #[rustfmt::skip]
         assert_eq!(
             g.adj(3, 0),
-            Adj::new([None, None, None, Some(&3), Some(&5), None, None, None,])
-        );
-        assert_eq!(
-            g.adj(3, 0),
-            Adj::new([None, None, None, Some(&3), Some(&5), None, None, None,])
+            Adj::new([
+                None,                              None,                              None,
+                Some(Cell::new([2,0].into(), 3)),                                     Some(Cell::new([4,0].into(), 5)),
+                None,                              None,                              None,
+            ])
         );
     }
 
@@ -111,18 +133,18 @@ mod grid_tests {
         assert_eq!(
             g.adj(0, 0),
             Adj::new([
-                None,     None,     None,
-                None,               Some(&2),
-                None,     Some(&4), Some(&5),
+                None,                              None,                              None,
+                None,                                                                 Some(Cell::new([1,0].into(), 2)),
+                None,                              Some(Cell::new([0, 1].into(), 4)), Some(Cell::new([1,1].into(), 5)),
             ])
         );
         #[rustfmt::skip]
         assert_eq!(
             g.adj(1, 1),
             Adj::new([
-                Some(&1), Some(&2), Some(&3),
-                Some(&4),           Some(&6),
-                Some(&7), Some(&8), Some(&9),
+                Some(Cell::new([0, 0].into(), 1)), Some(Cell::new([1, 0].into(), 2)), Some(Cell::new([2,0].into(), 3)),
+                Some(Cell::new([0, 1].into(), 4)),                                    Some(Cell::new([2,1].into(), 6)),
+                Some(Cell::new([0, 2].into(), 7)), Some(Cell::new([1, 2].into(), 8)), Some(Cell::new([2,2].into(), 9)),
             ])
         );
     }

@@ -1,40 +1,32 @@
 //! A solution to day 3 year 2023.
 //! https://adventofcode.com/2023/day/3
 
+use crate::{
+    grid::{Cell, Grid},
+    point::Point,
+};
 use std::collections::HashMap;
 
-type Model = Vec<Vec<char>>;
+type Model = Grid<char>;
 type Answer = u32;
 
 pub fn parse(input: String) -> Model {
-    input.lines().map(|line| line.chars().collect()).collect()
+    Grid::new(input.lines().map(|line| line.chars().collect()).collect())
 }
 
 pub fn part1(model: Model) -> Answer {
-    fn is_symbol(c: &char) -> bool {
-        !c.is_ascii_digit() && c != &'.'
+    fn is_symbol(c: Cell<char>) -> bool {
+        !c.data.is_ascii_digit() && c.data != '.'
     }
 
     let is_symbol_adjacent = |x: usize, y: usize| {
-        [
-            (x.saturating_sub(1), y.saturating_sub(1)),
-            (x, y.saturating_sub(1)),
-            (x + 1, y.saturating_sub(1)),
-            (x.saturating_sub(1), y),
-            (x + 1, y),
-            (x.saturating_sub(1), y + 1),
-            (x, y + 1),
-            (x + 1, y + 1),
-        ]
-        .map(|(x, y)| model.get(y).and_then(|row| row.get(x)))
-        .into_iter()
-        .flatten()
-        .any(is_symbol)
+        //
+        model.adj(x, y).cells.into_iter().flatten().any(is_symbol)
     };
 
     let mut part_nums: Vec<u32> = vec![];
 
-    for (y, row) in model.iter().enumerate() {
+    for (y, row) in model.cells.iter().enumerate() {
         let mut num = 0;
         let mut is_part_num = false;
         for (x, c) in row.iter().enumerate() {
@@ -79,34 +71,26 @@ fn to_number(digits: &[&char]) -> u32 {
 }
 
 pub fn part2(model: Model) -> Answer {
-    let get_adj_gear = |x: usize, y: usize| -> Option<(usize, usize)> {
-        [
-            (x.saturating_sub(1), y.saturating_sub(1)),
-            (x, y.saturating_sub(1)),
-            (x + 1, y.saturating_sub(1)),
-            (x.saturating_sub(1), y),
-            (x + 1, y),
-            (x.saturating_sub(1), y + 1),
-            (x, y + 1),
-            (x + 1, y + 1),
-        ]
-        .map(|(x, y)| ((x, y), model.get(y).and_then(|row| row.get(x))))
-        .into_iter()
-        .filter(|m| m.1.is_some() && m.1.unwrap() == &'*')
-        .map(|m| m.0)
-        .next()
+    let get_adj_gear = |x: usize, y: usize| -> Option<Point<2>> {
+        model
+            .adj(x, y)
+            .cells
+            .into_iter()
+            .filter_map(|cello| cello.map(|cell| (cell.data == '*').then(|| cell.pos)))
+            .flatten()
+            .next()
     };
 
     let mut gear_ratios: HashMap<(usize, usize), Vec<u32>> = HashMap::new();
 
-    for (y, row) in model.iter().enumerate() {
+    for (y, row) in model.cells.iter().enumerate() {
         let mut digits = vec![];
         let mut gear_loc: Option<(usize, usize)> = None;
         for (x, c) in row.iter().enumerate() {
             match c {
                 '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' => {
-                    if let Some((x, y)) = get_adj_gear(x, y) {
-                        gear_loc = Some((x, y));
+                    if let Some(point) = get_adj_gear(x, y) {
+                        gear_loc = Some((point.x(), point.y()));
                     }
                     digits.push(c)
                 }
