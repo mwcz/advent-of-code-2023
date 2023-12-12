@@ -90,8 +90,9 @@ pub fn parse(input: String) -> Model {
     }
 }
 
-/// Find two pipes connected to the given pipe, and whether the given pipe is a vertex
-fn connect(from: Pipe, adj: Adj<Pipe>) -> Option<[Cell<Pipe>; 2]> {
+/// Find two pipes connected to the given pipe, and the type of the from pipe (in order to
+/// determine the correct starting pipe)
+fn connect(from: Pipe, adj: Adj<Pipe>) -> Option<([Cell<Pipe>; 2], Pipe)> {
     use Pipe::*;
 
     let mut a = None;
@@ -114,11 +115,17 @@ fn connect(from: Pipe, adj: Adj<Pipe>) -> Option<[Cell<Pipe>; 2]> {
         None => a = Some(cell),
     };
 
+    let mut above = false;
+    let mut below = false;
+    let mut leftward = false;
+    let mut rightward = false;
+
     // U
     if let Some(up) = adj.cells[1] {
         if let (Start | UpDown | UpLeft | UpRight, Start | UpDown | RightDown | LeftDown) =
             (from, up.data)
         {
+            above = true;
             assign(up)
         }
     }
@@ -128,6 +135,7 @@ fn connect(from: Pipe, adj: Adj<Pipe>) -> Option<[Cell<Pipe>; 2]> {
         if let (Start | LeftRight | LeftDown | UpLeft, Start | LeftRight | RightDown | UpRight) =
             (from, left.data)
         {
+            leftward = true;
             assign(left)
         }
     }
@@ -137,6 +145,7 @@ fn connect(from: Pipe, adj: Adj<Pipe>) -> Option<[Cell<Pipe>; 2]> {
         if let (Start | RightDown | LeftRight | UpRight, Start | LeftRight | LeftDown | UpLeft) =
             (from, right.data)
         {
+            rightward = true;
             assign(right)
         }
     }
@@ -146,11 +155,28 @@ fn connect(from: Pipe, adj: Adj<Pipe>) -> Option<[Cell<Pipe>; 2]> {
         if let (Start | RightDown | UpDown | LeftDown, Start | UpDown | UpRight | UpLeft) =
             (from, down.data)
         {
+            below = true;
             assign(down)
         }
     }
 
-    a.and_then(|a| b.map(|b| [a, b]))
+    let from_pipe_type = if above && below {
+        Pipe::UpDown
+    } else if above && leftward {
+        Pipe::UpLeft
+    } else if above && rightward {
+        Pipe::UpRight
+    } else if leftward && rightward {
+        Pipe::LeftRight
+    } else if leftward && below {
+        Pipe::LeftDown
+    } else if rightward && below {
+        Pipe::RightDown
+    } else {
+        unreachable!();
+    };
+
+    a.and_then(|a| b.map(|b| ([a, b], from_pipe_type)))
 }
 
 pub fn part1(model: Model) -> Answer {
@@ -169,7 +195,7 @@ pub fn part1(model: Model) -> Answer {
     let mut last2 = start_cell;
 
     // get pipes connected to start
-    let start_con =
+    let (start_con, start_type) =
         connect(start_cell.data, start_adj).expect("couldn't find connections to start");
     // current location for trail 1
     let mut loc1 = start_con[0];
@@ -185,6 +211,7 @@ pub fn part1(model: Model) -> Answer {
 
         let con1 = connect(loc1.data, model.grid.adj(loc1.pos.x(), loc1.pos.y()))
             .unwrap()
+            .0
             .iter()
             .filter(|&loc| loc != &last1)
             .copied()
@@ -196,6 +223,7 @@ pub fn part1(model: Model) -> Answer {
 
         let con2 = connect(loc2.data, model.grid.adj(loc2.pos.x(), loc2.pos.y()))
             .unwrap()
+            .0
             .iter()
             .filter(|&loc| loc != &last2)
             .copied()
@@ -213,7 +241,7 @@ pub fn part1(model: Model) -> Answer {
     steps
 }
 
-pub fn part2(model: Model) -> Answer {
+pub fn part2(mut model: Model) -> Answer {
     println!("{}", model.grid);
     println!("start: {}", model.start);
 
@@ -229,16 +257,20 @@ pub fn part2(model: Model) -> Answer {
     let mut last2 = start_cell;
 
     // get pipes connected to start
-    let start_con =
+    let (start_con, start_type) =
         connect(start_cell.data, start_adj).expect("couldn't find connections to start");
     // current location for trail 1
     let mut loc1 = start_con[0];
     // current location for trail 2
     let mut loc2 = start_con[1];
 
+    // fix start cell
+    model.grid.cells[model.start.y()][model.start.x()] = start_type;
+    println!("{}", model.grid);
+
     let mut steps = 1;
 
-    // the connetged pipes in the loop
+    // the connected pipes in the loop
     let mut pipes = vec![model.start, loc1.pos, loc2.pos];
 
     loop {
@@ -248,6 +280,7 @@ pub fn part2(model: Model) -> Answer {
 
         let con1 = connect(loc1.data, model.grid.adj(loc1.pos.x(), loc1.pos.y()))
             .unwrap()
+            .0
             .iter()
             .filter(|&loc| loc != &last1)
             .copied()
@@ -259,6 +292,7 @@ pub fn part2(model: Model) -> Answer {
 
         let con2 = connect(loc2.data, model.grid.adj(loc2.pos.x(), loc2.pos.y()))
             .unwrap()
+            .0
             .iter()
             .filter(|&loc| loc != &last2)
             .copied()
@@ -277,36 +311,60 @@ pub fn part2(model: Model) -> Answer {
         }
     }
 
-    let outer_locs: Vec<_> = bfs_reach(Point::<2> { coords: [0, 0] }, |&n| {
-        model
-            .grid
-            .adj(n.x(), n.y())
-            .cells
-            .into_iter()
-            .filter_map(|cell| {
-                cell.and_then(|c| {
-                    print!("can we visit {:?}... ", c.pos);
-                    print!("  is in pipe loop? {}...", pipes.contains(&c.pos));
-                    let next = (!pipes.contains(&c.pos)).then_some(c.pos);
-                    println!("  visit? {:?}", next);
-                    next
-                })
-            })
-    })
-    .collect();
+    // it's raycastin' time
 
-    let total_area = (model.grid.width() + 1) * (model.grid.height() + 1);
-    let total_area = model.grid.area();
+    let within = |p: Point<2>| {
+        let y = p.y();
+        let mut ints = 0;
+        // the pipe we're waiting for that indicates entry (╚╗ is in but ╚╝ is out)
+        let mut wait_pipe = Pipe::NoPipe;
+        let mut inc_next = false;
+        for (x, cell) in model.grid.cells[y].iter().enumerate() {
+            let in_loop = pipes.contains(&[x, y].into());
+            if x == p.x() {
+                // hacky short circuit if we end on a loop cell
+                if in_loop {
+                    return false;
+                }
+                break;
+            }
+            if in_loop {
+                let next_in_loop = pipes.contains(&[y, x + 1].into());
+                match cell {
+                    Pipe::UpDown => {
+                        ints += 1;
+                    }
+                    Pipe::RightDown => wait_pipe = Pipe::UpLeft,
+                    Pipe::UpRight => wait_pipe = Pipe::LeftDown,
+                    Pipe::LeftDown if wait_pipe == Pipe::LeftDown => {
+                        // "reset" the wait
+                        wait_pipe = Pipe::NoPipe;
+                        ints += 1;
+                    }
+                    Pipe::UpLeft if wait_pipe == Pipe::UpLeft => {
+                        // "reset" the wait
+                        wait_pipe = Pipe::NoPipe;
+                        ints += 1;
+                    }
+                    _ => {}
+                }
+            }
+        }
+        ints % 2 == 1
+    };
 
-    println!("cells outside pipe loop: {}", outer_locs.len());
-    println!("total area: {}", total_area);
-    println!("pipe loop lenth: {}", pipes.len());
-    // dbg!(&pipes);
-    for loc in &outer_locs {
-        println!("{loc:?}");
+    let mut count = 0;
+    for y in 0..model.grid.height() {
+        for x in 0..model.grid.width() {
+            let p = [x, y].into();
+            let is_in = within(p);
+            if is_in {
+                count += 1;
+            }
+        }
     }
 
-    total_area - outer_locs.len() - pipes.len()
+    count
 }
 
 // #[cfg(test)]
