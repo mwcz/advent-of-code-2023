@@ -11,6 +11,18 @@ impl<T: Copy> Grid<T> {
         Self { cells }
     }
 
+    pub fn width(&self) -> usize {
+        self.cells.first().map(|row| row.len()).unwrap_or(0)
+    }
+
+    pub fn height(&self) -> usize {
+        self.cells.len()
+    }
+
+    pub fn area(&self) -> usize {
+        self.width() * self.height()
+    }
+
     /// Get cells adjacent to the given point.  Origin is top-left.  Cells outside the grid bounds
     /// will be None.
     ///
@@ -75,7 +87,7 @@ pub struct Adj<T: Copy> {
 }
 
 /// A cell in a grid, containing some data and a position within the grid.
-#[derive(PartialEq, Debug)]
+#[derive(Eq, PartialEq, Debug, Copy, Clone)]
 pub struct Cell<T> {
     pub pos: Point<2>,
     pub data: T,

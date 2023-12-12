@@ -19,10 +19,8 @@ pub fn part1(model: Model) -> Answer {
         !c.data.is_ascii_digit() && c.data != '.'
     }
 
-    let is_symbol_adjacent = |x: usize, y: usize| {
-        //
-        model.adj(x, y).cells.into_iter().flatten().any(is_symbol)
-    };
+    let is_symbol_adjacent =
+        |x: usize, y: usize| model.adj(x, y).cells.into_iter().flatten().any(is_symbol);
 
     let mut part_nums: Vec<u32> = vec![];
 

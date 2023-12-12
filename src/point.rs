@@ -1,4 +1,6 @@
-#[derive(PartialEq, Debug)]
+use std::fmt::Display;
+
+#[derive(Eq, PartialEq, Debug, Copy, Clone, Hash)]
 pub struct Point<const D: usize> {
     pub coords: [usize; D],
 }
@@ -30,5 +32,18 @@ impl<const D: usize> From<&[usize; D]> for Point<D> {
 impl<const D: usize> From<[usize; D]> for Point<D> {
     fn from(coords: [usize; D]) -> Self {
         Point { coords }
+    }
+}
+
+impl<const D: usize> Display for Point<D> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "(")?;
+        for (i, n) in self.coords.iter().enumerate() {
+            write!(f, "{}", n)?;
+            if i < self.coords.len() - 1 {
+                write!(f, ", ")?;
+            }
+        }
+        write!(f, ")")
     }
 }
