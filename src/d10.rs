@@ -180,8 +180,8 @@ fn connect(from: Pipe, adj: Adj<Pipe>) -> Option<([Cell<Pipe>; 2], Pipe)> {
 }
 
 pub fn part1(model: Model) -> Answer {
-    println!("{}", model.grid);
-    println!("start: {}", model.start);
+    // println!("{}", model.grid);
+    // println!("start: {}", model.start);
 
     let start_adj = model.grid.adj(model.start.x(), model.start.y());
     let start_cell = Cell::new(
@@ -242,8 +242,8 @@ pub fn part1(model: Model) -> Answer {
 }
 
 pub fn part2(mut model: Model) -> Answer {
-    println!("{}", model.grid);
-    println!("start: {}", model.start);
+    // println!("{}", model.grid);
+    // println!("start: {}", model.start);
 
     let start_adj = model.grid.adj(model.start.x(), model.start.y());
     let start_cell = Cell::new(
@@ -266,7 +266,9 @@ pub fn part2(mut model: Model) -> Answer {
 
     // fix start cell
     model.grid.cells[model.start.y()][model.start.x()] = start_type;
-    println!("{}", model.grid);
+    last1.data = start_type;
+    last2.data = start_type;
+    // println!("{}", model.grid);
 
     let mut steps = 1;
 
@@ -278,6 +280,7 @@ pub fn part2(mut model: Model) -> Answer {
 
         // continue finding connections to loc1 and loc2 until they are equal
 
+        // find next connection that isn't the previous pipe in trail 1
         let con1 = connect(loc1.data, model.grid.adj(loc1.pos.x(), loc1.pos.y()))
             .unwrap()
             .0
@@ -290,6 +293,7 @@ pub fn part2(mut model: Model) -> Answer {
         last1 = loc1;
         loc1 = con1;
 
+        // find next connection that isn't the previous pipe in trail 1
         let con2 = connect(loc2.data, model.grid.adj(loc2.pos.x(), loc2.pos.y()))
             .unwrap()
             .0
@@ -311,6 +315,13 @@ pub fn part2(mut model: Model) -> Answer {
         }
     }
 
+    // println!("Pipe loop:");
+    // for pipe in &pipes {
+    //     println!("  {pipe:?}");
+    // }
+    //
+    // TODO the pipes array is incomplete!
+
     // it's raycastin' time
 
     let within = |p: Point<2>| {
@@ -329,7 +340,6 @@ pub fn part2(mut model: Model) -> Answer {
                 break;
             }
             if in_loop {
-                let next_in_loop = pipes.contains(&[y, x + 1].into());
                 match cell {
                     Pipe::UpDown => {
                         ints += 1;
@@ -348,6 +358,8 @@ pub fn part2(mut model: Model) -> Answer {
                     }
                     _ => {}
                 }
+            } else {
+                wait_pipe = Pipe::NoPipe;
             }
         }
         ints % 2 == 1
@@ -359,6 +371,7 @@ pub fn part2(mut model: Model) -> Answer {
             let p = [x, y].into();
             let is_in = within(p);
             if is_in {
+                // println!("{p:?}");
                 count += 1;
             }
         }

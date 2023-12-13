@@ -155,7 +155,7 @@ fn run(day: u8, part: u8, input: String) {
         }
         (11, 2) => {
             let parsed = aoc2023::d11::parse(input);
-            let output = aoc2023::d11::part2(parsed);
+            let output = aoc2023::d11::part2::<1_000_000>(parsed);
             println!("{output}");
         }
         (12, 1) => {
