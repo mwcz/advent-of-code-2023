@@ -194,7 +194,7 @@ const LOG: bool = false;
 
 #[cached(
     key = "String",
-    convert = r#"{ format!("{base}-{bad_n}-{wild_n}-{:?}",pattern)  }"#
+    convert = r#"{ format!("{base}-{bad_n}-{wild_n}-{:?}-{}",pattern, discover & (1 << (base + 1)))  }"#
 )]
 fn solve2(
     (base, bad_n, wild_n, pattern, discover, condition, last_bits_added): (
