@@ -5,6 +5,7 @@ edition = "2021"
 publish = false
 
 [dependencies]
+cached = "0.46.1"
 # memoize = "0.4.1"
 # argh = "0.1.12"
 # console_engine = "2.5.0"
@@ -24,11 +25,12 @@ rayon = "1.6.1"
 # serde = { version = "1.0", features = ["serde_derive"] }
 # serde_json = "1.0.89"
 
-# [profile.release]
-# codegen-units = 1 
-# lto = true    
-# strip = true  
-# panic = "abort" 
+[profile.release]
+# codegen-units = 1
+# lto = true
+# strip = true
+# panic = "abort"
+debug = true
 
 [features]
 default = []
