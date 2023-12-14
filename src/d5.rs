@@ -1,7 +1,6 @@
 //! A solution to day 5 year 2023.
 //! https://adventofcode.com/2023/day/5
 
-use memoize::memoize;
 use rayon::prelude::*;
 use std::{cell::RefCell, collections::HashMap, ops::Range, panic::Location};
 

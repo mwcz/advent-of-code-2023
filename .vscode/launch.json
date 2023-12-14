@@ -6,7 +6,7 @@
             "request": "launch",
             "name": "Debug executable 'aoc2023'",
             "cwd": "${workspaceFolder}",
-            "program": "${workspaceFolder}/target/debug/aoc2023",
+            "program": "${workspaceFolder}/target/release/aoc2023",
             "args": [
                 "-d12",
                 "-p1"

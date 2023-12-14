@@ -5,7 +5,7 @@ edition = "2021"
 publish = false
 
 [dependencies]
-memoize = "0.4.1"
+# memoize = "0.4.1"
 # argh = "0.1.12"
 # console_engine = "2.5.0"
 # derive_more = "0.99.17"
