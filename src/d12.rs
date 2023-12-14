@@ -7,8 +7,7 @@ use cached::proc_macro::cached;
 use rayon::prelude::*;
 
 type Model = Vec<(String, Vec<u8>)>;
-type Answer = u32;
-type Answer2 = u128;
+type Answer = u128;
 
 pub fn parse(input: String) -> Model {
     input
@@ -106,67 +105,46 @@ fn leading_one(n: u128) -> Option<u128> {
 }
 
 pub fn part1(model: Model) -> Answer {
-    dbg!(&model);
     // use binary to represent springs
     // 1 means broken
     // 0 means working
 
-    // [
-    //     0b011101101000,
-    //     0b011101100100,
-    //     0b011101100010,
-    //     0b011101100001,
-    //     0b011100110100,
-    //     0b011100110010,
-    //     0b011100110001,
-    //     0b011100011010,
-    //     0b011100011001,
-    //     0b011100001101,
-    // ]
+    let count = model
+        .iter()
+        .enumerate()
+        .map(|(_i, (condition, pattern))| {
+            let bad_n = buildnum2(condition, '#');
+            let good_n = buildnum2(condition, '.');
+            let wild_n = buildnum2(condition, '?');
 
-    let mut count = 0;
-    let mut total_checks = 0;
+            const LOG: bool = false;
 
-    for (condition, pattern) in &model {
-        let mut local_count = 0;
-        for n in 0..=u32::MAX {
-            // stop after searching through 2^20
-            if n > 2u32.pow(condition.len() as u32) {
-                break;
+            println!(
+                "    cond : {}{condition}",
+                " ".repeat(120 - condition.len())
+            );
+
+            if LOG {
+                println!(" pattern : {pattern:?}");
+                println!("  good_n : {good_n:0120b}");
+                println!("   bad_n : {bad_n:0120b}");
+                println!("  wild_n : {wild_n:0120b}");
             }
 
-            total_checks += 1;
+            // start with the leftmost digit that is possibly a bad spring
+            let start = leading_one(bad_n).max(leading_one(wild_n)).unwrap();
 
-            let broken_n = buildnum(condition, '#');
-            let working_n = buildnum(condition, '.');
-            // println!("  {condition}");
-            // println!("{condition_n:020b}");
-
-            let matches_broken = (broken_n & n) == broken_n;
-            let matches_working = n & working_n == 0;
-            let matches_pattern = check(n, pattern);
-            if matches_pattern && matches_broken && matches_working {
-                local_count += 1;
-                // println!("{n:020b} matches {pattern:?}? {matches_pattern}");
-                // println!("{broken_n:020b} <- broken");
-                // println!("{working_n:020b} <- working");
-                // println!(
-                //     "{}{condition} <- condition",
-                //     " ".repeat(20 - condition.len())
-                // );
+            if LOG {
+                println!("   start : {}⬆️", " ".repeat((120 - 1) - (start as usize)));
             }
-        }
-        // println!("                     {local_count} patterns");
-        count += local_count;
-        // println!();
-    }
 
-    // TODO RESUME HERE
-    // this pattern is getting 15 results when it should get 10
-    // ?###???????? 3,2,1
-    // there probably shouldn't be any extra 1's after the pattern is consumed
-
-    println!("checked {total_checks}");
+            (
+                condition,
+                solve2((start, bad_n, wild_n, pattern, 0, condition.clone(), 0)),
+            )
+        })
+        .map(|(i, c)| c)
+        .sum();
 
     count
 }
@@ -407,7 +385,7 @@ fn solve2(
     win_score + step_progress_score + step_same_score
 }
 
-pub fn part2(model: Model) -> Answer2 {
+pub fn part2(model: Model) -> Answer {
     // use binary to represent springs
     // 1 means broken
     // 0 means working
@@ -517,13 +495,10 @@ mod tests {
         assert_eq!(part2(parse(EXAMPLE.to_string())), 525152);
     }
 
-    // #[test]
-    // fn d12p2_input_test() {
-    //     assert_eq!(
-    //         part2(parse(INPUT.to_string())),
-    //         "put part 2 final answer here"
-    //     );
-    // }
+    #[test]
+    fn d12p2_input_test() {
+        assert_eq!(part2(parse(INPUT.to_string())), 5071883216318);
+    }
 }
 
 // loop {
