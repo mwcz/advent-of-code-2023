@@ -19,27 +19,6 @@ pub fn parse(input: String) -> Model {
         .collect()
 }
 
-/// Build a new number with the given number of 1 lowest-significance bits.  Ex: bits(3) == 0b111
-fn bits(n: u8) -> u128 {
-    2u128.pow(n as u32) - 1
-}
-
-/// Find the magitude of the leading (highest significance) one in the given number.  Returns None
-/// if there are no ones
-fn leading_one(n: u128) -> Option<u128> {
-    if n == 0 {
-        return None;
-    }
-    let mut n = n;
-    let mut count = 0;
-    const MASK: u128 = u128::MAX - (u128::MAX >> 1);
-    while n & MASK == 0 {
-        n <<= 1;
-        count += 1;
-    }
-    Some(127 - count)
-}
-
 pub fn part1(model: Model) -> Answer {
     // use binary to represent springs
     // 1 means broken
@@ -59,6 +38,53 @@ pub fn part1(model: Model) -> Answer {
         .sum();
 
     count
+}
+
+pub fn part2(model: Model) -> Answer {
+    // use binary to represent springs
+    // 1 means broken
+    // 0 means working
+
+    let model: Model = model
+        .into_iter()
+        .map(|(s, p)| ([s.as_str()].repeat(5).join("?").to_string(), p.repeat(5)))
+        .collect();
+
+    let count = model
+        .iter()
+        .map(|(condition, pattern)| {
+            let bad_n = charmask(condition, '#');
+            let wild_n = charmask(condition, '?');
+
+            // start with the leftmost digit that is possibly a bad spring
+            let start = leading_one(bad_n).max(leading_one(wild_n)).unwrap();
+
+            solve((start, bad_n, wild_n, pattern, 0, condition.clone(), 0))
+        })
+        .sum();
+
+    count
+}
+
+/// Build a new number with the given number of 1 lowest-significance bits.  Ex: bits(3) == 0b111
+fn bits(n: u8) -> u128 {
+    2u128.pow(n as u32) - 1
+}
+
+/// Find the magitude of the leading (highest significance) one in the given number.  Returns None
+/// if there are no ones
+fn leading_one(n: u128) -> Option<u128> {
+    if n == 0 {
+        return None;
+    }
+    let mut n = n;
+    let mut count = 0;
+    const MASK: u128 = u128::MAX - (u128::MAX >> 1);
+    while n & MASK == 0 {
+        n <<= 1;
+        count += 1;
+    }
+    Some(127 - count)
 }
 
 fn has_room(pattern: &[u8], base: u128) -> bool {
@@ -206,32 +232,6 @@ fn solve(
     };
 
     win_score + step_progress_score + step_same_score
-}
-
-pub fn part2(model: Model) -> Answer {
-    // use binary to represent springs
-    // 1 means broken
-    // 0 means working
-
-    let model: Model = model
-        .into_iter()
-        .map(|(s, p)| ([s.as_str()].repeat(5).join("?").to_string(), p.repeat(5)))
-        .collect();
-
-    let count = model
-        .iter()
-        .map(|(condition, pattern)| {
-            let bad_n = charmask(condition, '#');
-            let wild_n = charmask(condition, '?');
-
-            // start with the leftmost digit that is possibly a bad spring
-            let start = leading_one(bad_n).max(leading_one(wild_n)).unwrap();
-
-            solve((start, bad_n, wild_n, pattern, 0, condition.clone(), 0))
-        })
-        .sum();
-
-    count
 }
 
 /// Build a number from a string by treating given char c as 1 and all other chars as 0.
