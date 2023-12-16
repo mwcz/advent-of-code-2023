@@ -2,6 +2,7 @@ use std::fmt::Display;
 
 use crate::point::Point;
 
+#[derive(Debug)]
 pub struct Grid<T: Copy> {
     pub cells: Vec<Vec<T>>,
 }
@@ -21,6 +22,16 @@ impl<T: Copy> Grid<T> {
 
     pub fn area(&self) -> usize {
         self.width() * self.height()
+    }
+
+    pub fn rows(&self) -> &Vec<Vec<T>> {
+        &self.cells
+    }
+
+    pub fn cols(&self) -> Vec<Vec<T>> {
+        (0..self.cells[0].len())
+            .map(|x| (0..self.cells.len()).map(|y| self.cells[y][x]).collect())
+            .collect()
     }
 
     /// Get cells adjacent to the given point.  Origin is top-left.  Cells outside the grid bounds
