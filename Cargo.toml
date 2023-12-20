@@ -15,7 +15,7 @@ cached = "0.46.1"
 # num-bigint = "0.4.3"
 # num-traits = "0.2.15"
 # once_cell = "1.16.0"
-pathfinding = "4.4.0"
+# pathfinding = "4.4.0"
 pico-args = { version = "0.5.0", features = [
     "combined-flags",
     "short-space-opt",

@@ -3,8 +3,6 @@
 
 use std::fmt::Display;
 
-use pathfinding::prelude::bfs_reach;
-
 use crate::{
     grid::{Adj, Cell, Grid},
     point::Point,

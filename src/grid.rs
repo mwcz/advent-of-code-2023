@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use crate::point::Point;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub struct Grid<T: Copy> {
     pub cells: Vec<Vec<T>>,
 }
@@ -24,14 +24,32 @@ impl<T: Copy> Grid<T> {
         self.width() * self.height()
     }
 
-    pub fn rows(&self) -> &Vec<Vec<T>> {
-        &self.cells
+    pub fn rows(&self) -> Vec<Vec<T>> {
+        self.cells.clone()
     }
 
     pub fn cols(&self) -> Vec<Vec<T>> {
         (0..self.cells[0].len())
             .map(|x| (0..self.cells.len()).map(|y| self.cells[y][x]).collect())
             .collect()
+    }
+
+    /// Copy the items from new_col into the grid at the given column index (col_idx).
+    pub fn set_col(&mut self, col_idx: usize, new_col: &[T]) {
+        assert_eq!(new_col.len(), self.height());
+
+        for (i, t) in new_col.iter().enumerate() {
+            self.cells[i][col_idx] = *t;
+        }
+    }
+
+    /// Copy the items from new_row into the grid at the given row index (row_idx).
+    pub fn set_row(&mut self, row_idx: usize, new_row: &[T]) {
+        assert_eq!(new_row.len(), self.width());
+
+        for (i, t) in new_row.iter().enumerate() {
+            self.cells[row_idx][i] = *t;
+        }
     }
 
     /// Get cells adjacent to the given point.  Origin is top-left.  Cells outside the grid bounds
@@ -186,6 +204,54 @@ mod grid_tests {
                 Some(Cell::new([0, 1].into(), 4)),                                    Some(Cell::new([2,1].into(), 6)),
                 Some(Cell::new([0, 2].into(), 7)), Some(Cell::new([1, 2].into(), 8)), Some(Cell::new([2,2].into(), 9)),
             ])
+        );
+    }
+
+    #[test]
+    fn grid_set_col_test() {
+        let mut g: Grid<u8> = Grid {
+            #[rustfmt::skip]
+            cells:vec![
+                vec![1, 2, 3],
+                vec![4, 5, 6],
+                vec![7, 8, 9]
+            ],
+        };
+
+        g.set_col(1, &[13, 11, 12]);
+
+        #[rustfmt::skip]
+        assert_eq!(
+            g.cells,
+            vec![
+                vec![1, 13, 3],
+                vec![4, 11, 6],
+                vec![7, 12, 9]
+            ]
+        );
+    }
+
+    #[test]
+    fn grid_set_row_test() {
+        let mut g: Grid<u8> = Grid {
+            #[rustfmt::skip]
+            cells:vec![
+                vec![1, 2, 3],
+                vec![4, 5, 6],
+                vec![7, 8, 9]
+            ],
+        };
+
+        g.set_row(1, &[13, 11, 12]);
+
+        #[rustfmt::skip]
+        assert_eq!(
+            g.cells,
+            vec![
+                vec![ 1,  2,  3],
+                vec![13, 11, 12],
+                vec![ 7,  8,  9]
+            ]
         );
     }
 }
