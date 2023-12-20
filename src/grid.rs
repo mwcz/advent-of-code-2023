@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use crate::point::Point;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Grid<T: Copy> {
     pub cells: Vec<Vec<T>>,
 }
