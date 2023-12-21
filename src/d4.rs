@@ -8,7 +8,7 @@ pub fn parse(input: String) -> Model {
     input
         .lines()
         .map(|line| {
-            let (name, nums) = line.split_once(':').unwrap();
+            let (_name, nums) = line.split_once(':').unwrap();
             let (wins, haves) = nums.split_once('|').unwrap();
             let wins = wins
                 .split_whitespace()
@@ -35,11 +35,9 @@ pub fn part1(cards: Model) -> Answer {
     total_score
 }
 
-pub fn part2(mut cards: Model) -> Answer {
+pub fn part2(cards: Model) -> Answer {
     #[derive(Clone)]
     struct Card {
-        wins: Vec<u32>,
-        haves: Vec<u32>,
         matches: usize,
         copies: u32,
     }
@@ -48,8 +46,6 @@ pub fn part2(mut cards: Model) -> Answer {
         .into_iter()
         .map(|(wins, haves)| Card {
             matches: haves.iter().filter(|h| wins.contains(h)).count(),
-            wins,
-            haves,
             copies: 1,
         })
         .collect();

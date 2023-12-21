@@ -1,8 +1,6 @@
 //! A solution to day 1 year 2023.
 //! https://adventofcode.com/2023/day/1
 
-use std::{fmt::Display, str::Lines};
-
 type Model = Vec<String>;
 type Answer = usize;
 

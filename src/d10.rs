@@ -96,13 +96,6 @@ fn connect(from: Pipe, adj: Adj<Pipe>) -> Option<([Cell<Pipe>; 2], Pipe)> {
     let mut a = None;
     let mut b = None;
 
-    enum Dir {
-        Up,
-        Left,
-        Right,
-        Down,
-    }
-
     // if `a` is None, assign to `a`, otherwise if `b` is None, assign to `b`, otherwise PANIC
     // because there should be only two connected pipes.
     let mut assign = |cell| match a {
@@ -193,7 +186,7 @@ pub fn part1(model: Model) -> Answer {
     let mut last2 = start_cell;
 
     // get pipes connected to start
-    let (start_con, start_type) =
+    let (start_con, _start_type) =
         connect(start_cell.data, start_adj).expect("couldn't find connections to start");
     // current location for trail 1
     let mut loc1 = start_con[0];
@@ -268,14 +261,10 @@ pub fn part2(mut model: Model) -> Answer {
     last2.data = start_type;
     // println!("{}", model.grid);
 
-    let mut steps = 1;
-
     // the connected pipes in the loop
     let mut pipes = vec![model.start, loc1.pos, loc2.pos];
 
     loop {
-        steps += 1;
-
         // continue finding connections to loc1 and loc2 until they are equal
 
         // find next connection that isn't the previous pipe in trail 1
@@ -327,7 +316,6 @@ pub fn part2(mut model: Model) -> Answer {
         let mut ints = 0;
         // the pipe we're waiting for that indicates entry (╚╗ is in but ╚╝ is out)
         let mut wait_pipe = Pipe::NoPipe;
-        let mut inc_next = false;
         for (x, cell) in model.grid.cells[y].iter().enumerate() {
             let in_loop = pipes.contains(&[x, y].into());
             if x == p.x() {

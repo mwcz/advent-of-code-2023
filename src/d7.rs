@@ -1,7 +1,7 @@
 //! A solution to day 7 year 2023.
 //! https://adventofcode.com/2023/day/7
 
-use std::{cmp::Ordering, str::FromStr};
+use std::cmp::Ordering;
 
 type Model = String;
 type Answer = usize;
@@ -233,35 +233,23 @@ mod tests {
     const INPUT: &str = include_str!("../input/d7");
     const EXAMPLE: &str = include_str!("../examples/d7");
 
-    // #[test]
-    // fn d7p1_example_test() {
-    //     assert_eq!(
-    //         part1(parse(EXAMPLE.to_string())),
-    //         "put part 1 example answer here"
-    //     );
-    // }
-    //
-    // #[test]
-    // fn d7p1_input_test() {
-    //     assert_eq!(
-    //         part1(parse(INPUT.to_string())),
-    //         "put part 1 final answer here"
-    //     );
-    // }
-    //
-    // #[test]
-    // fn d7p2_example_test() {
-    //     assert_eq!(
-    //         part2(parse(EXAMPLE.to_string())),
-    //         "put part 2 example answer here"
-    //     );
-    // }
-    //
-    // #[test]
-    // fn d7p2_input_test() {
-    //     assert_eq!(
-    //         part2(parse(INPUT.to_string())),
-    //         "put part 2 final answer here"
-    //     );
-    // }
+    #[test]
+    fn d7p1_example_test() {
+        assert_eq!(part1(parse(EXAMPLE.to_string())), 6440);
+    }
+
+    #[test]
+    fn d7p1_input_test() {
+        assert_eq!(part1(parse(INPUT.to_string())), 251106089);
+    }
+
+    #[test]
+    fn d7p2_example_test() {
+        assert_eq!(part2(parse(EXAMPLE.to_string())), 5905);
+    }
+
+    #[test]
+    fn d7p2_input_test() {
+        assert_eq!(part2(parse(INPUT.to_string())), 249620106);
+    }
 }

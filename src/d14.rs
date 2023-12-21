@@ -1,7 +1,7 @@
 //! A solution to day 14 year 2023.
 //! https://adventofcode.com/2023/day/14
 
-use std::{collections::VecDeque, fmt::Display};
+use std::fmt::Display;
 
 use crate::{direction::CardDir, grid::Grid};
 
@@ -48,7 +48,7 @@ impl Platform {
         let mut score = 0;
 
         for (y, row) in self.grid.cells.iter().enumerate() {
-            for (x, rock) in row.iter().enumerate() {
+            for rock in row.iter() {
                 if *rock == Rock::Round {
                     score += self.grid.height() - y;
                 }
@@ -131,7 +131,6 @@ pub fn part2(mut model: Model) -> Answer {
     let mut seq = vec![0; max_cycle_size];
     assert!(seq.len() % 2 == 0);
 
-    let mut last_grid = model.grid.clone();
     let mut cycle = vec![];
     let mut cycle_at = 0;
     let total_cycles = 1000000000;
@@ -151,7 +150,7 @@ pub fn part2(mut model: Model) -> Answer {
         seq.reverse();
 
         for j in min_cycle_size..=(seq.len() / 2) {
-            let mut chunks: Vec<&[usize]> = seq.chunks(j).collect();
+            let chunks: Vec<&[usize]> = seq.chunks(j).collect();
             if chunks[0] == chunks[1] && i >= max_cycle_size {
                 cycle = Vec::from(chunks[0]);
                 cycle_at = i;

@@ -1,7 +1,7 @@
 //! A solution to day 11 year 2023.
 //! https://adventofcode.com/2023/day/11
 
-use std::cmp::{self, Ordering};
+use std::cmp::Ordering;
 
 type Model = (Vec<Vec<u32>>, Vec<usize>, Vec<usize>);
 type Answer = usize;
@@ -15,7 +15,7 @@ pub fn parse(input: String) -> Model {
     let mut empty_rows = vec![];
     let mut empty_cols = vec![];
 
-    let mut universe: Vec<Vec<u32>> = input
+    let universe: Vec<Vec<u32>> = input
         .lines()
         .enumerate()
         .map(|(y, line)| {
@@ -50,25 +50,6 @@ pub fn parse(input: String) -> Model {
     (universe, empty_rows, empty_cols)
 }
 
-fn uniprint(universe: &[Vec<u32>]) {
-    for row in universe.iter() {
-        for cell in row.iter() {
-            print!(
-                "{}",
-                if *cell == 0 {
-                    '.'
-                } else {
-                    //
-                    '#'
-                    // char::from_digit(*cell, 10).unwrap()
-                }
-            );
-        }
-        println!();
-    }
-    println!();
-}
-
 pub fn part1((mut universe, empty_rows, empty_cols): Model) -> Answer {
     // embiggen
 
@@ -97,12 +78,10 @@ pub fn part1((mut universe, empty_rows, empty_cols): Model) -> Answer {
     }
 
     let mut sum = 0;
-    let mut iters = 0;
 
     for (i, gal_a) in gals.iter().enumerate() {
         for gal_b in gals[(i + 1)..].iter() {
             if gal_a != gal_b {
-                iters += 1;
                 sum += (gal_a.0.abs_diff(gal_b.0)) + (gal_a.1.abs_diff(gal_b.1));
             }
         }
@@ -111,7 +90,7 @@ pub fn part1((mut universe, empty_rows, empty_cols): Model) -> Answer {
     sum
 }
 
-pub fn part2<const F: usize>((mut universe, empty_rows, empty_cols): Model) -> Answer {
+pub fn part2<const F: usize>((universe, empty_rows, empty_cols): Model) -> Answer {
     let mut gals = vec![];
     for (y, row) in universe.iter().enumerate() {
         for (x, cell) in row.iter().enumerate() {
@@ -122,13 +101,10 @@ pub fn part2<const F: usize>((mut universe, empty_rows, empty_cols): Model) -> A
     }
 
     let mut sum = 0;
-    let mut iters = 0;
 
     for (i, gal_a) in gals.iter().enumerate() {
         for gal_b in gals[(i + 1)..].iter() {
             if gal_a != gal_b {
-                iters += 1;
-
                 let y_empty_count = if gal_a.1 == gal_b.1 {
                     // if y values are equal there's no room to add additional expansion
                     0

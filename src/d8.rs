@@ -1,7 +1,7 @@
 //! A solution to day 8 year 2023.
 //! https://adventofcode.com/2023/day/8
 
-use std::{collections::HashMap, time::Duration};
+use std::collections::HashMap;
 
 type Model = Map;
 type Answer = usize;
@@ -59,8 +59,7 @@ pub fn part2(model: Model) -> Answer {
         .collect();
 
     let mut cycles = vec![0; posi.len()];
-    let mut last_zs = vec![0; posi.len()];
-    let starts = posi.clone();
+    let last_zs = vec![0; posi.len()];
 
     for (i, mov) in model.dirs.iter().cycle().enumerate() {
         let step = i + 1;

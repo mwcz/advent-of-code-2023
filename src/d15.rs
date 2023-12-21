@@ -85,6 +85,7 @@ struct Lens {
     focal_length: usize,
 }
 
+#[cfg(test)]
 mod tests {
     use super::*;
 
