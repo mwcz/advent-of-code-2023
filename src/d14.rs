@@ -59,10 +59,10 @@ impl Platform {
     }
 }
 
-fn roll_vec(v: &Vec<Rock>, dir: CardDir) -> Vec<Rock> {
-    let mut v = v.clone();
+fn roll_vec(v: &[Rock], dir: CardDir) -> Vec<Rock> {
+    let mut v = Vec::from(v);
     let dynamic_rocks = [Rock::Round, Rock::Empty];
-    let grouped = v.group_by_mut(|a, b| dynamic_rocks.contains(&a) && dynamic_rocks.contains(&b));
+    let grouped = v.group_by_mut(|a, b| dynamic_rocks.contains(a) && dynamic_rocks.contains(b));
     for group in grouped {
         group.sort();
         if [CardDir::Right, CardDir::Down].contains(&dir) {

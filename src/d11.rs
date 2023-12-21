@@ -1,7 +1,7 @@
 //! A solution to day 11 year 2023.
 //! https://adventofcode.com/2023/day/11
 
-use std::cmp;
+use std::cmp::{self, Ordering};
 
 type Model = (Vec<Vec<u32>>, Vec<usize>, Vec<usize>);
 type Answer = usize;
@@ -138,15 +138,16 @@ pub fn part2<const F: usize>((mut universe, empty_rows, empty_cols): Model) -> A
                         .iter()
                         .filter(|&&y| {
                             // true if empty_col y value is between gal_a.1 and gal_b.1
-                            if gal_a.1 > gal_b.1 {
-                                let between = gal_b.1 < y && y < gal_a.1;
-                                between
-                            } else if gal_a.1 < gal_b.1 {
-                                let between = gal_a.1 < y && y < gal_b.1;
-                                between
-                            } else {
-                                // equal
-                                false
+                            match gal_a.1.cmp(&gal_b.1) {
+                                Ordering::Less => {
+                                    let between = gal_a.1 < y && y < gal_b.1;
+                                    between
+                                }
+                                Ordering::Greater => {
+                                    let between = gal_b.1 < y && y < gal_a.1;
+                                    between
+                                }
+                                Ordering::Equal => false,
                             }
                         })
                         .count()
@@ -161,15 +162,17 @@ pub fn part2<const F: usize>((mut universe, empty_rows, empty_cols): Model) -> A
                         .iter()
                         .filter(|&&y| {
                             // true if empty_col y value is between gal_a.0 and gal_b.0
-                            if gal_a.0 > gal_b.0 {
-                                let between = gal_b.0 < y && y < gal_a.0;
-                                between
-                            } else if gal_a.0 < gal_b.0 {
-                                let between = gal_a.0 < y && y < gal_b.0;
-                                between
-                            } else {
-                                // equal
-                                false
+                            match gal_a.0.cmp(&gal_b.0) {
+                                Ordering::Less => {
+                                    let between = gal_a.0 < y && y < gal_b.0;
+                                    between
+                                }
+
+                                Ordering::Greater => {
+                                    let between = gal_b.0 < y && y < gal_a.0;
+                                    between
+                                }
+                                Ordering::Equal => false,
                             }
                         })
                         .count()
