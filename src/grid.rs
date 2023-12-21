@@ -28,6 +28,10 @@ impl<T: Copy> Grid<T> {
         self.cells.clone()
     }
 
+    pub fn get(&self, x: usize, y: usize) -> Option<T> {
+        self.cells.get(y).and_then(|row| row.get(x)).copied()
+    }
+
     pub fn cols(&self) -> Vec<Vec<T>> {
         (0..self.cells[0].len())
             .map(|x| (0..self.cells.len()).map(|y| self.cells[y][x]).collect())

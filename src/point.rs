@@ -1,6 +1,8 @@
 use std::fmt::Display;
 
-#[derive(Eq, PartialEq, Debug, Copy, Clone, Hash)]
+use crate::{direction::CardDir, grid::Grid};
+
+#[derive(Eq, PartialEq, Debug, Copy, Clone, Hash, Ord, PartialOrd)]
 pub struct Point<const D: usize> {
     pub coords: [usize; D],
 }
@@ -18,6 +20,40 @@ impl<const D: usize> Point<D> {
     }
     pub fn z(&self) -> usize {
         self.coords[2]
+    }
+
+    /// Set a new value for the x coordinate.
+    pub fn set_x(&mut self, new_x: usize) {
+        self.coords[0] = new_x;
+    }
+
+    /// Set a new value for the y coordinate.
+    pub fn set_y(&mut self, new_y: usize) {
+        self.coords[1] = new_y;
+    }
+
+    /// Set a new value for the z coordinate.
+    pub fn set_z(&mut self, new_z: usize) {
+        self.coords[2] = new_z;
+    }
+
+    /// Attempt to move the point one unit in the given direction, within a grid bounds.  Returns
+    /// None if the move would push the point outside the bounds of the grid.
+    pub fn move_in_grid<T: Copy>(&self, dir: CardDir, grid: &Grid<T>) -> Option<Point<D>> {
+        let mut p = *self;
+
+        match dir {
+            CardDir::Up => p.set_y(p.y().checked_sub(1)?),
+            CardDir::Down => p.set_y(p.y().checked_add(1)?),
+            CardDir::Left => p.set_x(p.x().checked_sub(1)?),
+            CardDir::Right => p.set_x(p.x().checked_add(1)?),
+        }
+
+        if grid.width() > p.x() && grid.height() > p.y() {
+            Some(p)
+        } else {
+            None
+        }
     }
 }
 
