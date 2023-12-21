@@ -1,5 +1,4 @@
 #![allow(clippy::let_and_return)]
-#![allow(unused)]
 #![feature(slice_group_by)]
 pub mod d1;
 pub mod d10;
