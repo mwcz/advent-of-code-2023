@@ -18,16 +18,19 @@ pub fn part1(model: Model) -> Answer {
 
 pub fn part2(model: Model) -> Answer {
     let mut boxes = vec![Box::default(); 256];
+
     for step in model {
         let (label, focal_length) = step.split_at(step.find(['-', '=']).unwrap());
+        let (cmd, focal_length) = focal_length.split_at(1);
+        let focal_length = focal_length.parse().unwrap_or(0);
+
         let idx = hash(label);
         if let Some(existing_lens) = boxes[idx]
             .lenses
             .iter()
             .position(|box_lens| box_lens.label == label)
         {
-            let cmd = focal_length.chars().next().unwrap();
-            if cmd == '-' {
+            if cmd == "-" {
                 if let Some(existing_idx) = boxes[idx]
                     .lenses
                     .iter()
@@ -35,21 +38,18 @@ pub fn part2(model: Model) -> Answer {
                 {
                     boxes[idx].lenses.remove(existing_idx);
                 }
-            } else if cmd == '=' {
-                // handle =
+            } else if cmd == "=" {
                 boxes[idx].lenses[existing_lens] = Lens {
                     label: label.to_string(),
-                    focal_length: focal_length[1..].parse().unwrap(),
+                    focal_length,
                 };
             }
-        } else if focal_length.starts_with('=') {
+        } else if cmd == "=" {
             // handle add new
             boxes[idx].lenses.push(Lens {
                 label: label.to_string(),
-                focal_length: focal_length.strip_prefix('=').unwrap().parse().unwrap(),
+                focal_length,
             });
-        } else {
-            // handle -
         }
     }
 
