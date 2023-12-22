@@ -4,7 +4,7 @@
 use std::fmt::Display;
 
 use crate::{
-    grid::{Adj, Cell, Grid},
+    grid::{Adj8, Cell, Grid},
     point::Point,
 };
 
@@ -90,7 +90,7 @@ pub fn parse(input: String) -> Model {
 
 /// Find two pipes connected to the given pipe, and the type of the from pipe (in order to
 /// determine the correct starting pipe)
-fn connect(from: Pipe, adj: Adj<Pipe>) -> Option<([Cell<Pipe>; 2], Pipe)> {
+fn connect(from: Pipe, adj: Adj8<Pipe>) -> Option<([Cell<Pipe>; 2], Pipe)> {
     use Pipe::*;
 
     let mut a = None;
@@ -174,7 +174,7 @@ pub fn part1(model: Model) -> Answer {
     // println!("{}", model.grid);
     // println!("start: {}", model.start);
 
-    let start_adj = model.grid.adj(model.start.x(), model.start.y());
+    let start_adj = model.grid.adj_8(model.start.x(), model.start.y());
     let start_cell = Cell::new(
         model.start,
         model.grid.cells[model.start.y()][model.start.x()],
@@ -200,7 +200,7 @@ pub fn part1(model: Model) -> Answer {
 
         // continue finding connections to loc1 and loc2 until they are equal
 
-        let con1 = connect(loc1.data, model.grid.adj(loc1.pos.x(), loc1.pos.y()))
+        let con1 = connect(loc1.data, model.grid.adj_8(loc1.pos.x(), loc1.pos.y()))
             .unwrap()
             .0
             .iter()
@@ -212,7 +212,7 @@ pub fn part1(model: Model) -> Answer {
         last1 = loc1;
         loc1 = con1;
 
-        let con2 = connect(loc2.data, model.grid.adj(loc2.pos.x(), loc2.pos.y()))
+        let con2 = connect(loc2.data, model.grid.adj_8(loc2.pos.x(), loc2.pos.y()))
             .unwrap()
             .0
             .iter()
@@ -236,7 +236,7 @@ pub fn part2(mut model: Model) -> Answer {
     // println!("{}", model.grid);
     // println!("start: {}", model.start);
 
-    let start_adj = model.grid.adj(model.start.x(), model.start.y());
+    let start_adj = model.grid.adj_8(model.start.x(), model.start.y());
     let start_cell = Cell::new(
         model.start,
         model.grid.cells[model.start.y()][model.start.x()],
@@ -268,7 +268,7 @@ pub fn part2(mut model: Model) -> Answer {
         // continue finding connections to loc1 and loc2 until they are equal
 
         // find next connection that isn't the previous pipe in trail 1
-        let con1 = connect(loc1.data, model.grid.adj(loc1.pos.x(), loc1.pos.y()))
+        let con1 = connect(loc1.data, model.grid.adj_8(loc1.pos.x(), loc1.pos.y()))
             .unwrap()
             .0
             .iter()
@@ -281,7 +281,7 @@ pub fn part2(mut model: Model) -> Answer {
         loc1 = con1;
 
         // find next connection that isn't the previous pipe in trail 1
-        let con2 = connect(loc2.data, model.grid.adj(loc2.pos.x(), loc2.pos.y()))
+        let con2 = connect(loc2.data, model.grid.adj_8(loc2.pos.x(), loc2.pos.y()))
             .unwrap()
             .0
             .iter()

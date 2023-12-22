@@ -1,10 +1,49 @@
-use std::fmt::Display;
+use std::{
+    fmt::Display,
+    ops::{Add, Sub},
+};
+
+use pathfinding::num_traits::Zero;
 
 use crate::{direction::CardDir, grid::Grid};
 
 #[derive(Eq, PartialEq, Debug, Copy, Clone, Hash, Ord, PartialOrd)]
 pub struct Point<const D: usize> {
     pub coords: [usize; D],
+}
+
+impl<const D: usize> Sub for Point<D> {
+    type Output = Point<D>;
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        let mut new_coords = self.coords;
+        for (i, c) in new_coords.iter_mut().enumerate() {
+            *c -= rhs.coords[i];
+        }
+        new_coords.into()
+    }
+}
+
+impl<const D: usize> Add for Point<D> {
+    type Output = Point<D>;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        let mut new_coords = self.coords;
+        for (i, c) in new_coords.iter_mut().enumerate() {
+            *c += rhs.coords[i];
+        }
+        new_coords.into()
+    }
+}
+
+impl<const D: usize> Zero for Point<D> {
+    fn zero() -> Self {
+        [0; D].into()
+    }
+
+    fn is_zero(&self) -> bool {
+        self.coords.iter().all(|c| *c == 0)
+    }
 }
 
 impl<const D: usize> Point<D> {
@@ -35,6 +74,11 @@ impl<const D: usize> Point<D> {
     /// Set a new value for the z coordinate.
     pub fn set_z(&mut self, new_z: usize) {
         self.coords[2] = new_z;
+    }
+
+    /// Get the magnitude of the point, considered as a vector.
+    pub fn mag(&self) -> usize {
+        self.coords.iter().product::<usize>() / self.coords.len()
     }
 
     /// Attempt to move the point one unit in the given direction, within a grid bounds.  Returns

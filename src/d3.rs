@@ -20,7 +20,7 @@ pub fn part1(model: Model) -> Answer {
     }
 
     let is_symbol_adjacent =
-        |x: usize, y: usize| model.adj(x, y).cells.into_iter().flatten().any(is_symbol);
+        |x: usize, y: usize| model.adj_8(x, y).cells.into_iter().flatten().any(is_symbol);
 
     let mut part_nums: Vec<u32> = vec![];
 
@@ -71,7 +71,7 @@ fn to_number(digits: &[&char]) -> u32 {
 pub fn part2(model: Model) -> Answer {
     let get_adj_gear = |x: usize, y: usize| -> Option<Point<2>> {
         model
-            .adj(x, y)
+            .adj_8(x, y)
             .cells
             .into_iter()
             .filter_map(|cello| cello.map(|cell| (cell.data == '*').then_some(cell.pos)))
