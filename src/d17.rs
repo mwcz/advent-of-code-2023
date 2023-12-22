@@ -87,30 +87,19 @@ pub fn part2(model: Model) -> Answer {
                 .zip([Up, Left, Right, Down])
                 .map(|(new_point, new_dir)| {
                     if let Some(new_point) = new_point {
+                        #[rustfmt::skip]
                         let new_straight = match (dir, new_dir) {
-                            (None, Down)
-                            | (None, Right)
-                            | (Some(Up), Up)
-                            | (Some(Down), Down)
-                            | (Some(Left), Left)
-                            | (Some(Right), Right)
+                            (None, Down) | (None, Right) | (Some(Up), Up) | (Some(Down), Down) | (Some(Left), Left) | (Some(Right), Right)
                                 if *straight < 10 =>
                             {
                                 Some(straight + 1)
                             }
-                            (Some(Up), Up)
-                            | (Some(Down), Down)
-                            | (Some(Left), Left)
-                            | (Some(Right), Right) => None,
+                            // no continuing if straight >= 10
+                            (Some(Up), Up) | (Some(Down), Down) | (Some(Left), Left) | (Some(Right), Right) => None,
                             // no 180's
-                            (Some(Up), Down)
-                            | (Some(Down), Up)
-                            | (Some(Left), Right)
-                            | (Some(Right), Left) => None,
-                            (Some(Up), _)
-                            | (Some(Down), _)
-                            | (Some(Left), _)
-                            | (Some(Right), _)
+                            (Some(Up), Down) | (Some(Down), Up) | (Some(Left), Right) | (Some(Right), Left) => None,
+                            // turning allowed if straight >= 4
+                            (Some(Up), _) | (Some(Down), _) | (Some(Left), _) | (Some(Right), _)
                                 if *straight >= 4 =>
                             {
                                 Some(1)
