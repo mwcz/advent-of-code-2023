@@ -68,36 +68,6 @@ pub fn part1(model: Model) -> Answer {
     )
     .unwrap();
 
-    let mut to_print: Vec<Vec<String>> = model
-        .cells
-        .iter()
-        .enumerate()
-        .map(|(y, row)| {
-            row.iter()
-                .enumerate()
-                .map(|(x, c)| format!("{c}"))
-                .collect()
-        })
-        .collect();
-    for row in &to_print {
-        for c in row {
-            print!("{c}");
-        }
-        println!();
-    }
-    println!();
-
-    for (point, dir, _) in &path.0 {
-        to_print[point.y()][point.x()] = dir.to_string();
-    }
-
-    for row in to_print {
-        for c in row {
-            print!("{c}");
-        }
-        println!();
-    }
-
     path.1
 }
 
@@ -110,7 +80,6 @@ pub fn part2(model: Model) -> Answer {
     let path = astar(
         &(start, None, 0),
         |(p, dir, straight)| {
-            // println!("p: {p}, dir: {dir}, straight: {straight}");
             let successors: Vec<_> = model
                 .adj_4(p.x(), p.y())
                 .cells
@@ -162,44 +131,6 @@ pub fn part2(model: Model) -> Answer {
         |(p, _dir, straight_rem)| *p == end && *straight_rem >= 4,
     )
     .expect("couldn't find a path");
-
-    let mut to_print: Vec<Vec<String>> = model
-        .cells
-        .iter()
-        .enumerate()
-        .map(|(y, row)| {
-            row.iter()
-                .enumerate()
-                .map(|(x, c)| format!("{c}"))
-                .collect()
-        })
-        .collect();
-    for row in &to_print {
-        for c in row {
-            print!("{c}");
-        }
-        println!();
-    }
-    println!();
-
-    for (point, dir, _) in &path.0 {
-        if let Some(dir) = dir {
-            to_print[point.y()][point.x()] = dir.to_string();
-        }
-    }
-
-    for row in to_print {
-        for c in row {
-            print!("{c}");
-        }
-        println!();
-    }
-
-    let total: usize = path.0[1..]
-        .iter()
-        .map(|(p, _, _)| model.get(p.x(), p.y()).unwrap())
-        .sum();
-    println!("total score: {total}");
 
     path.1
 }
