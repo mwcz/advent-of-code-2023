@@ -15,21 +15,15 @@ def shoelace(verts):
         y1 = verts[i][1]
         y2 = verts[j][1]
 
-        if x1 > x2:
-            x1 = ceil(x1 - 0.5)
-            x2 = floor(x2 +0.5)
-
         if x2 > x1:
-            x2 = ceil(x2 - 0.5)
-            x1 = floor(x1 +0.5)
-
-        if y1 > y2:
-            y1 = ceil(y1 - 0.5)
-            y2 = floor(y2 +0.5)
+            x2 += 1
+        else: 
+            x1 += 1
 
         if y2 > y1:
-            y2 = ceil(y2 - 0.5)
-            y1 = floor(y1 +0.5)
+            y2 += 1
+        else: 
+            y1 += 1
 
         a += x1 * y2
         a -= x2 * y1
@@ -63,4 +57,22 @@ print(shoelace([
     [7,6],
     [1,6],
 ]), 14)
+
+print("day 18")
+print(shoelace([
+    [1, 0],
+    [7, 0],
+    [7, 5],
+    [5, 5],
+    [5, 7],
+    [7, 7],
+    [7, 9],
+    [2, 9],
+    [2, 7],
+    [1, 7],
+    [1, 5],
+    [3, 5],
+    [3, 2],
+    [1, 2],
+]), "==", 62)
 

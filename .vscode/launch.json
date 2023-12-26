@@ -8,10 +8,9 @@
             "cwd": "${workspaceFolder}",
             "program": "${workspaceFolder}/target/debug/aoc2023",
             "args": [
-                "-d17",
+                "-d18",
                 "-p2",
-                "-i",
-                "examples/d17-2"
+                "-e"
             ]
         }
     ]

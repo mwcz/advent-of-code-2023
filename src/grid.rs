@@ -156,6 +156,18 @@ impl<T: Copy> Adj4<T> {
     pub fn new(cells: [Option<Cell<T>>; 4]) -> Self {
         Self { cells }
     }
+    pub fn up(&self) -> Option<Cell<T>> {
+        self.cells[0]
+    }
+    pub fn left(&self) -> Option<Cell<T>> {
+        self.cells[1]
+    }
+    pub fn right(&self) -> Option<Cell<T>> {
+        self.cells[2]
+    }
+    pub fn down(&self) -> Option<Cell<T>> {
+        self.cells[3]
+    }
 }
 
 /// A representation of cells adjacent to a point.  Produced by Grid::adj_8.
@@ -167,6 +179,31 @@ pub struct Adj8<T: Copy> {
 impl<T: Copy> Adj8<T> {
     pub fn new(cells: [Option<Cell<T>>; 8]) -> Self {
         Self { cells }
+    }
+
+    pub fn up_left(&self) -> Option<Cell<T>> {
+        self.cells[0]
+    }
+    pub fn up(&self) -> Option<Cell<T>> {
+        self.cells[1]
+    }
+    pub fn up_right(&self) -> Option<Cell<T>> {
+        self.cells[2]
+    }
+    pub fn left(&self) -> Option<Cell<T>> {
+        self.cells[3]
+    }
+    pub fn right(&self) -> Option<Cell<T>> {
+        self.cells[4]
+    }
+    pub fn down_left(&self) -> Option<Cell<T>> {
+        self.cells[5]
+    }
+    pub fn down(&self) -> Option<Cell<T>> {
+        self.cells[6]
+    }
+    pub fn down_right(&self) -> Option<Cell<T>> {
+        self.cells[7]
     }
 }
 
