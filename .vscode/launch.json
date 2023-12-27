@@ -9,8 +9,9 @@
             "program": "${workspaceFolder}/target/debug/aoc2023",
             "args": [
                 "-d18",
-                "-p2",
-                "-e"
+                "-p1",
+                "-i",
+                "examples/d18-small"
             ]
         }
     ]

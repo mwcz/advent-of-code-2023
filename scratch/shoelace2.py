@@ -1,4 +1,3 @@
-
 def shoelace(verts):
     """
     Calculate the area of a polygon defined by a list of vertices.
@@ -29,13 +28,10 @@ def shoelace(verts):
 
     # account for pixels having area by shifting each vertex outward
     for i in range(n):
-        bumped = (verts[i][0] - min_x + 1.0/4.0) * x_bump
+        bumped = (verts[i][0] - min_x) * bump
         verts[i][0]  += bumped
-        bumped = (verts[i][1] - min_y + 1.0/4.0) * y_bump
+        bumped = (verts[i][1] - min_y) * bump
         verts[i][1]  += bumped
-    for i in range(n):
-        verts[i][0] = round(verts[i][0] )
-        verts[i][1] = round(verts[i][1] )
 
     print()
 
@@ -62,10 +58,10 @@ def shoelace(verts):
     for i in range(n):
         j = (i + 1) % n
 
-        x1 = round(verts[i][0])
-        x2 = round(verts[j][0])
-        y1 = round(verts[i][1])
-        y2 = round(verts[j][1])
+        x1 = verts[i][0]
+        x2 = verts[j][0]
+        y1 = verts[i][1]
+        y2 = verts[j][1]
 
         a += x1 * y2
         a -= x2 * y1
@@ -101,23 +97,28 @@ def shoelace(verts):
 #     [1,1],
 # ]), 40)
 
-print(shoelace([
-    [2,1],
-    [10,1],
-    [8,6],
-    [11,7],
-    [7,10],
-]), 32.0)
+# print(shoelace([
+#     [2,1],
+#     [10,1],
+#     [8,6],
+#     [11,7],
+#     [7,10],
+# ]), 32.0)
 
 print(shoelace([
-    [1, 6],
-    [7, 6],
-    [7, 1],
-    [5, 1],
-    [5, 3],
-    [3, 3],
-    [3, 1],
-    [1, 1],
-
-]), "==", 40)
+    [0, 0],
+    [6, 0],
+    [6, 5],
+    [4, 5],
+    [4, 7],
+    [6, 7],
+    [6, 9],
+    [1, 9],
+    [1, 7],
+    [0, 7],
+    [0, 5],
+    [2, 5],
+    [2, 2],
+    [0, 2],
+]), "==", 62)
 

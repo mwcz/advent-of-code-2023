@@ -21,6 +21,10 @@ pub struct Plan {
     height: i32,
     grid: Grid<char>,
     steps: Vec<Step>,
+    max_y: i32,
+    min_y: i32,
+    max_x: i32,
+    min_x: i32,
 }
 
 #[derive(Debug)]
@@ -93,6 +97,11 @@ pub fn parse(input: String) -> Model {
         let width = max_x - min_x + 2 + x_offset;
         let height = max_y - min_y + 2 + y_offset;
 
+        println!(
+            "x_offset: {}, y_offset: {}, width: {}, height: {}",
+            x_offset, y_offset, width, height
+        );
+
         Plan {
             x_offset,
             y_offset,
@@ -100,6 +109,10 @@ pub fn parse(input: String) -> Model {
             height,
             grid: Grid::new(vec![vec!['.'; (width) as usize]; (height) as usize]),
             steps,
+            max_y,
+            min_y,
+            max_x,
+            min_x,
         }
     };
 
@@ -108,7 +121,7 @@ pub fn parse(input: String) -> Model {
             .lines()
             .map(|line| {
                 let (_, hex) = line.split_at(1 + line.find('#').unwrap());
-                println!("{hex}");
+                // println!("{hex}");
                 let dist_s = &hex[0..5];
                 let dist = i32::from_str_radix(dist_s, 16).unwrap();
                 let dir_s = &hex[5..6];
@@ -157,18 +170,32 @@ pub fn parse(input: String) -> Model {
             }
         }
 
+        // println!("steps: {:#?}", steps);
         let x_offset = -min_x + 1;
         let y_offset = -min_y + 1;
         let width = max_x - min_x + 2 + x_offset;
         let height = max_y - min_y + 2 + y_offset;
+
+        // print all of model's fields EXCEPT grid
+        println!(
+            "x_offset: {}, y_offset: {}, width: {}, height: {}",
+            x_offset, y_offset, width, height
+        );
+        // todo!();
+        // let grid = Grid::new(vec![vec!['.'; (width) as usize]; (height) as usize]);
+        let grid = Grid::new(vec![vec!['.'; 0]; 0]);
 
         Plan {
             x_offset,
             y_offset,
             width,
             height,
-            grid: Grid::new(vec![vec!['.'; (width) as usize]; (height) as usize]),
+            grid,
             steps,
+            min_x,
+            max_x,
+            min_y,
+            max_y,
         }
     };
 
@@ -177,20 +204,11 @@ pub fn parse(input: String) -> Model {
 
 fn solve(mut plan: Plan) -> Answer {
     let mut pos: Point<2> = [plan.x_offset as usize, plan.y_offset as usize].into();
-    // print all of model's fields EXCEPT grid
-    println!(
-        "x_offset: {}, y_offset: {}, width: {}, height: {}",
-        plan.x_offset, plan.y_offset, plan.width, plan.height
-    );
-    // println!("steps: {:?}", model.steps);
 
-    let mut set_tile = |x: usize, y: usize, c: char| {
-        println!("O set tile ({x}, {y})");
-        plan.grid.cells[y][x] = c;
-    };
+    let mut verticals = vec![];
 
+    // get the vertical lines in the object
     for step in &plan.steps {
-        println!("@ {} go {} {} meters", pos, step.dir, step.mag);
         let x = (pos.x() as i32);
         let y = (pos.y() as i32);
 
@@ -201,22 +219,11 @@ fn solve(mut plan: Plan) -> Answer {
             CardDir::Right => x..=(x + step.mag),
         };
 
-        match step.dir {
-            CardDir::Up | CardDir::Down => {
-                // process vert range
-                for y in range.clone() {
-                    set_tile(pos.x(), y as usize, '#');
-                }
-            }
-            CardDir::Left | CardDir::Right => {
-                // process horiz range
-                for x in range.clone() {
-                    set_tile(x as usize, pos.y(), '#');
-                }
-            }
+        if let CardDir::Up | CardDir::Down = step.dir {
+            // process vert range
+            verticals.push((x, range.clone()));
         }
-        println!("{range:?}");
-        // update current pos
+
         match step.dir {
             CardDir::Up => pos.set_y(range.min().unwrap() as usize),
             CardDir::Down => pos.set_y(range.max().unwrap() as usize),
@@ -225,24 +232,40 @@ fn solve(mut plan: Plan) -> Answer {
         }
     }
 
-    // calculate area with flood fill
-    let mut visited: HashSet<Point<2>> = HashSet::new();
-    let mut queue: Vec<Point<2>> = vec![[0, 0].into()];
+    dbg!(&verticals);
 
-    while let Some(pos) = queue.pop() {
-        if !visited.contains(&pos) {
-            visited.insert(pos);
-            let adj = plan.grid.adj_4(pos.x(), pos.y());
+    // calculate area with double ray cast
 
-            for cell in adj.cells.into_iter().flatten() {
-                if cell.data == '.' && !visited.contains(&cell.pos) {
-                    queue.push(cell.pos);
+    let start_y = 0;
+    let end_y = plan.height;
+
+    let start_x = 0;
+    let end_x = plan.width;
+
+    let mut inside = false;
+    let mut area = 0;
+
+    for y1 in start_y..end_y {
+        inside = false; // probably unnecessary
+
+        let y2 = y1 + 1;
+
+        for x in start_x..=end_x {
+            for vertical in &verticals {
+                if vertical.0 == x && vertical.1.contains(&(y1)) && vertical.1.contains(&(y2)) {
+                    inside = !inside;
+                    break;
                 }
+            }
+            if inside {
+                area += 1;
             }
         }
     }
 
-    plan.grid.width() * plan.grid.height() - visited.len()
+    dbg!(&area);
+
+    todo!();
 }
 
 pub fn part1((mut model, _): Model) -> Answer {
@@ -250,6 +273,7 @@ pub fn part1((mut model, _): Model) -> Answer {
 }
 
 pub fn part2((_, mut model): Model) -> Answer {
+    // get just the up/down steps and turn them into line segments
     solve(model)
 }
 
