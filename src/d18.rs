@@ -7,30 +7,30 @@ use crate::{direction::CardDir, grid::Grid, point::Point};
 
 // plan for part 1 and part 2
 type Model = (Plan, Plan);
-type Answer = usize;
+type Answer = i64;
 
 #[derive(Debug)]
 pub struct Plan {
     /// how far to shift the grid to the right to account for the instructions drifting into
     /// negative x
-    x_offset: i32,
+    x_offset: i64,
     /// how far to shift the grid down to account for the instructions drifting into
     /// negative y
-    y_offset: i32,
-    width: i32,
-    height: i32,
+    y_offset: i64,
+    width: i64,
+    height: i64,
     grid: Grid<char>,
     steps: Vec<Step>,
-    max_y: i32,
-    min_y: i32,
-    max_x: i32,
-    min_x: i32,
+    max_y: i64,
+    min_y: i64,
+    max_x: i64,
+    min_x: i64,
 }
 
 #[derive(Debug)]
 struct Step {
     dir: CardDir,
-    mag: i32,
+    mag: i64,
     // TODO add color
 }
 
@@ -123,7 +123,7 @@ pub fn parse(input: String) -> Model {
                 let (_, hex) = line.split_at(1 + line.find('#').unwrap());
                 // println!("{hex}");
                 let dist_s = &hex[0..5];
-                let dist = i32::from_str_radix(dist_s, 16).unwrap();
+                let dist = i64::from_str_radix(dist_s, 16).unwrap();
                 let dir_s = &hex[5..6];
                 let dir = match dir_s {
                     "0" => "R",
@@ -205,67 +205,46 @@ pub fn parse(input: String) -> Model {
 fn solve(mut plan: Plan) -> Answer {
     let mut pos: Point<2> = [plan.x_offset as usize, plan.y_offset as usize].into();
 
-    let mut verticals = vec![];
+    let mut x = plan.x_offset;
+    let mut y = plan.y_offset;
+    let mut lengths = 0;
 
-    // get the vertical lines in the object
-    for step in &plan.steps {
-        let x = (pos.x() as i32);
-        let y = (pos.y() as i32);
+    let verts: Vec<_> = plan
+        .steps
+        .iter()
+        .map(|step| {
+            lengths += step.mag - 1;
+            match step.dir {
+                CardDir::Up => y -= step.mag,
+                CardDir::Down => y += step.mag,
+                CardDir::Left => x -= step.mag,
+                CardDir::Right => x += step.mag,
+            };
+            //
+            (x, y)
+        })
+        .collect();
 
-        let range = match step.dir {
-            CardDir::Up => (y - step.mag)..=y,
-            CardDir::Down => y..=(y + step.mag),
-            CardDir::Left => (x - step.mag)..=x,
-            CardDir::Right => x..=(x + step.mag),
-        };
+    dbg!(&verts);
 
-        if let CardDir::Up | CardDir::Down = step.dir {
-            // process vert range
-            verticals.push((x, range.clone()));
-        }
-
-        match step.dir {
-            CardDir::Up => pos.set_y(range.min().unwrap() as usize),
-            CardDir::Down => pos.set_y(range.max().unwrap() as usize),
-            CardDir::Left => pos.set_x(range.min().unwrap() as usize),
-            CardDir::Right => pos.set_x(range.max().unwrap() as usize),
-        }
+    let mut a = 0;
+    for i in 0..verts.len() {
+        let j = (i + 1) % verts.len();
+        let s1 = verts[i];
+        let s2 = verts[j];
+        a += s1.0 * s2.1;
+        a -= s2.0 * s1.1;
     }
+    a = a.abs() / 2;
 
-    dbg!(&verticals);
+    // find extra area
 
-    // calculate area with double ray cast
-
-    let start_y = 0;
-    let end_y = plan.height;
-
-    let start_x = 0;
-    let end_x = plan.width;
-
-    let mut inside = false;
-    let mut area = 0;
-
-    for y1 in start_y..end_y {
-        inside = false; // probably unnecessary
-
-        let y2 = y1 + 1;
-
-        for x in start_x..=end_x {
-            for vertical in &verticals {
-                if vertical.0 == x && vertical.1.contains(&(y1)) && vertical.1.contains(&(y2)) {
-                    inside = !inside;
-                    break;
-                }
-            }
-            if inside {
-                area += 1;
-            }
-        }
-    }
-
-    dbg!(&area);
-
-    todo!();
+    let corners = plan.steps.len() as i64;
+    let outies = (corners + 4) / 2;
+    let innies = outies - 4;
+    let corner_area = (outies * 3 + innies) / 4;
+    let length_area = lengths / 2;
+    a + corner_area + length_area
 }
 
 pub fn part1((mut model, _): Model) -> Answer {
@@ -277,42 +256,30 @@ pub fn part2((_, mut model): Model) -> Answer {
     solve(model)
 }
 
-// #[cfg(test)]
-// mod tests {
-//     use super::*;
-//
-//     const INPUT: &str = include_str!("../input/d18");
-//     const EXAMPLE: &str = include_str!("../examples/d18");
-//
-//     // #[test]
-//     // fn d18p1_example_test() {
-//     //     assert_eq!(
-//     //         part1(parse(EXAMPLE.to_string())),
-//     //         "put part 1 example answer here"
-//     //     );
-//     // }
-//     //
-//     // #[test]
-//     // fn d18p1_input_test() {
-//     //     assert_eq!(
-//     //         part1(parse(INPUT.to_string())),
-//     //         "put part 1 final answer here"
-//     //     );
-//     // }
-//     //
-//     // #[test]
-//     // fn d18p2_example_test() {
-//     //     assert_eq!(
-//     //         part2(parse(EXAMPLE.to_string())),
-//     //         "put part 2 example answer here"
-//     //     );
-//     // }
-//     //
-//     // #[test]
-//     // fn d18p2_input_test() {
-//     //     assert_eq!(
-//     //         part2(parse(INPUT.to_string())),
-//     //         "put part 2 final answer here"
-//     //     );
-//     // }
-// }
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const INPUT: &str = include_str!("../input/d18");
+    const EXAMPLE: &str = include_str!("../examples/d18");
+
+    #[test]
+    fn d18p1_example_test() {
+        assert_eq!(part1(parse(EXAMPLE.to_string())), 62);
+    }
+
+    #[test]
+    fn d18p1_input_test() {
+        assert_eq!(part1(parse(INPUT.to_string())), 40131);
+    }
+
+    #[test]
+    fn d18p2_example_test() {
+        assert_eq!(part2(parse(EXAMPLE.to_string())), 952408144115);
+    }
+
+    #[test]
+    fn d18p2_input_test() {
+        assert_eq!(part2(parse(INPUT.to_string())), 104454050898331);
+    }
+}
