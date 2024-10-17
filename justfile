@@ -22,6 +22,10 @@ FORCE_DEFAULT := ""
     echo "input for day {{DAY}} already exists in input/d{{DAY}}"; \
   fi
 
+# download every day's input file (unless it exists already) (requires AOC_SESSION env)
+@input_all:
+  for day in {1..25}; do just input $day; done
+
 # create an empty file to hold DAY's example input (unless it exists already)
 @example DAY:
   if [ ! -f examples/d{{DAY}} ]; then \

@@ -140,7 +140,7 @@ impl HandType {
     fn from_cards(cards: &[u8]) -> HandType {
         let mut cards = cards.to_vec();
         cards.sort();
-        let groups: Vec<&[u8]> = cards.group_by(|a, b| a == b).collect();
+        let groups: Vec<&[u8]> = cards.chunk_by(|a, b| a == b).collect();
 
         let is_five = groups.len() == 1;
         if is_five {
@@ -182,7 +182,7 @@ impl HandType {
 
         let jokers = cards.iter().filter(|&&c| c == 1).count();
         let without_jokers: Vec<u8> = cards.iter().filter(|&&c| c != 1).copied().collect();
-        let groups: Vec<&[u8]> = without_jokers.group_by(|a, b| a == b).collect();
+        let groups: Vec<&[u8]> = without_jokers.chunk_by(|a, b| a == b).collect();
 
         let maxlen = groups.iter().map(|group| group.len()).max().unwrap_or(0);
 
