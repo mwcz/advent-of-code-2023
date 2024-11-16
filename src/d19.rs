@@ -1,16 +1,19 @@
 //! A solution to day 19 year 2023.
 //! https://adventofcode.com/2023/day/19
 
+use indexmap::IndexMap;
 use rayon::prelude::*;
-use std::{cmp::Ordering, collections::HashMap};
+use std::cmp::{max, min};
+use std::ops::Range;
+use std::{cmp::Ordering, fmt::Display};
 
-type Model<'a> = (HashMap<String, Workflow>, Vec<Part>);
+type Model<'a> = (IndexMap<String, Workflow>, Vec<Part>);
 type Answer = u64;
 
 pub fn parse(input: String) -> Model<'static> {
     let (workflows, parts) = input.split_at(input.find("\n\n").unwrap());
 
-    let workflows: HashMap<String, Workflow> = workflows
+    let workflows: IndexMap<String, Workflow> = workflows
         .trim()
         .lines()
         .map(|line| {
@@ -99,6 +102,21 @@ pub enum PartType {
     Shiny,
 }
 
+impl Display for PartType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                PartType::XCool => "x",
+                PartType::Musical => "m",
+                PartType::Aero => "a",
+                PartType::Shiny => "s",
+            }
+        )
+    }
+}
+
 impl From<&str> for PartType {
     fn from(value: &str) -> Self {
         match value {
@@ -111,7 +129,15 @@ impl From<&str> for PartType {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
+pub struct AcceptRange {
+    x: Vec<Range<u64>>,
+    m: Vec<Range<u64>>,
+    a: Vec<Range<u64>>,
+    s: Vec<Range<u64>>,
+}
+
+#[derive(Debug, Clone)]
 pub struct Part {
     wf: String,
     x: u64,
@@ -145,6 +171,43 @@ impl Part {
 pub struct Workflow {
     name: String,
     reqs: Vec<Req>,
+}
+
+impl Display for Req {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}{}{}:{}",
+            self.part_type,
+            match self.cmp {
+                Ordering::Less => "<",
+                Ordering::Equal => "=",
+                Ordering::Greater => ">",
+            },
+            self.mag,
+            self.dst
+        )
+    }
+}
+
+impl Display for Workflow {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}{{", self.name)?;
+        let reqs = self
+            .reqs
+            .iter()
+            .map(|req| {
+                if req.cmp == Ordering::Equal {
+                    req.dst.to_string()
+                } else {
+                    format!("{req}")
+                }
+            })
+            .collect::<Vec<String>>()
+            .join(",");
+        write!(f, "{}", reqs);
+        write!(f, "}}")
+    }
 }
 
 #[derive(Debug)]
@@ -185,56 +248,113 @@ pub fn part1((workflows, mut part_queue): Model) -> Answer {
         .sum()
 }
 
+const MAX: u64 = 4000;
 pub fn part2((workflows, _): Model) -> u64 {
     let mut sum: u64 = 0;
 
-    const N: u64 = 4000;
+    let mut part_mags: Vec<Part> = Vec::new();
 
-    let range = 0..N.pow(4);
+    for (_, x) in &workflows {
+        println!("{x}");
+    }
 
-    range
-        .into_par_iter()
-        .map(|i| {
-            let mut part_queue = vec![];
-            let x = 1 + i % N;
-            let m = 1 + (i / N) % N;
-            let a = 1 + (i / N.pow(2)) % N;
-            let s = 1 + (i / N.pow(3)) % N;
-            let part = Part {
-                wf: "in".to_string(),
-                x,
-                m,
-                a,
-                s,
-            };
-            part_queue.push(part);
+    println!();
 
-            while let Some(part) = part_queue.pop() {
-                // println!("{:?}", part);
-                let wf = workflows.get(part.wf.as_str()).unwrap();
+    let mut a_paths = Vec::new();
 
-                // default to the last item
-                let mut dst = &wf.reqs.last().unwrap().dst;
+    dfs(
+        &workflows,
+        workflows.first().unwrap().0,
+        AcceptRange {
+            x: vec![0..MAX],
+            m: vec![0..MAX],
+            a: vec![0..MAX],
+            s: vec![0..MAX],
+        },
+        &mut a_paths,
+    );
 
-                for req in &wf.reqs {
-                    if part.get_type(req.part_type).cmp(&req.mag) == req.cmp {
-                        dst = &req.dst;
-                        break;
-                        //
-                    }
-                }
-                if dst == "A" {
-                    return part.x + part.m + part.a + part.s;
-                } else if dst != "R" {
-                    part_queue.push(part.with_wf(dst));
-                } else {
-                    return 0;
-                }
+    let a_paths = a_paths.into_iter().map(|r| range_intersect(&r.x));
+
+    println!("{a_paths:#?}");
+
+    todo!("working on it...");
+}
+
+fn range_intersect(ranges: &Vec<Range<u64>>) -> Range<u64> {
+    let out = ranges
+        .clone()
+        .into_iter()
+        .reduce(|acc, range| {
+            let start = max(acc.start, range.start);
+            let end = min(acc.end, range.end);
+            if start < end {
+                start..end
+            } else {
+                0..0
             }
-
-            unreachable!();
         })
-        .sum()
+        .unwrap_or(0..0);
+    out
+}
+
+/// wfs: the workflows to consider
+/// req: the current req being searched
+fn dfs(
+    wfs: &IndexMap<String, Workflow>,
+    wf: &str,
+    range: AcceptRange,
+    a_paths: &mut Vec<AcceptRange>,
+) {
+    println!("in workflow {}", wf);
+    if let Some(wf) = wfs.get(wf) {
+        let mut range = range.clone();
+        for req in &wf.reqs {
+            // if req.cmp == Ordering::Equal {
+            // } else {
+            //     match req.part_type {
+            //         PartType::XCool => range.x -= req.mag,
+            //         PartType::Musical => range.m -= req.mag,
+            //         PartType::Aero => range.a -= req.mag,
+            //         PartType::Shiny => range.s -= req.mag,
+            //     }
+            // }
+
+            println!("  req {}", req);
+            // print if final, otherwise add to search
+            if req.dst == "A" {
+                // if Accept was reached by the last rule, no range change
+                if req.cmp == Ordering::Equal {
+                    println!("  complete: {range:?}");
+                    a_paths.push(range.clone());
+                } else {
+                    match (req.part_type, req.cmp) {
+                        (PartType::XCool, Ordering::Less) => range.x.push(0..req.mag),
+                        (PartType::XCool, Ordering::Greater) => range.x.push(req.mag..MAX),
+                        (PartType::Musical, Ordering::Less) => range.m.push(0..req.mag),
+                        (PartType::Musical, Ordering::Greater) => range.m.push(req.mag..MAX),
+                        (PartType::Aero, Ordering::Less) => range.a.push(0..req.mag),
+                        (PartType::Aero, Ordering::Greater) => range.a.push(req.mag..MAX),
+                        (PartType::Shiny, Ordering::Less) => range.s.push(0..req.mag),
+                        (PartType::Shiny, Ordering::Greater) => range.s.push(req.mag..MAX),
+                        (_, _) => {}
+                    }
+                    // match req.part_type {
+                    //     PartType::XCool => range.x -= req.mag,
+                    //     PartType::Musical => range.m -= req.mag,
+                    //     PartType::Aero => range.a -= req.mag,
+                    //     PartType::Shiny => range.s -= req.mag,
+                    // }
+                    // println!("  complete: {range:?}");
+                    println!("  complete: {range:?}");
+                    a_paths.push(range.clone());
+                }
+            } else {
+                // not yet complete, keep searching
+                dfs(wfs, &req.dst, range.clone(), a_paths);
+            }
+        }
+    }
 }
 
 #[cfg(test)]
@@ -254,14 +374,11 @@ mod tests {
         assert_eq!(part1(parse(INPUT.to_string())), 492702);
     }
 
-    // #[test]
-    // fn d19p2_example_test() {
-    //     assert_eq!(
-    //         part2(parse(EXAMPLE.to_string())),
-    //         "put part 2 example answer here"
-    //     );
-    // }
-    //
+    #[test]
+    fn d19p2_example_test() {
+        assert_eq!(part2(parse(EXAMPLE.to_string())), 167409079868000);
+    }
+
     // #[test]
     // fn d19p2_input_test() {
     //     assert_eq!(
