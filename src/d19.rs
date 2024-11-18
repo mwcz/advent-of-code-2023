@@ -2,6 +2,7 @@
 //! https://adventofcode.com/2023/day/19
 
 use indexmap::IndexMap;
+use itertools::Itertools;
 use rayon::prelude::*;
 use std::cmp::{max, min};
 use std::ops::Range;
@@ -131,6 +132,25 @@ impl From<&str> for PartType {
 
 #[derive(Debug, Clone)]
 pub struct AcceptRange {
+    x: Range<u64>,
+    m: Range<u64>,
+    a: Range<u64>,
+    s: Range<u64>,
+}
+
+impl AcceptRange {
+    pub fn new() -> Self {
+        Self {
+            x: 1..MAX,
+            m: 1..MAX,
+            a: 1..MAX,
+            s: 1..MAX,
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct AcceptRanges {
     x: Vec<Range<u64>>,
     m: Vec<Range<u64>>,
     a: Vec<Range<u64>>,
@@ -265,24 +285,51 @@ pub fn part2((workflows, _): Model) -> u64 {
     dfs(
         &workflows,
         workflows.first().unwrap().0,
-        AcceptRange {
-            x: vec![0..MAX],
-            m: vec![0..MAX],
-            a: vec![0..MAX],
-            s: vec![0..MAX],
+        AcceptRanges {
+            x: vec![1..MAX],
+            m: vec![1..MAX],
+            a: vec![1..MAX],
+            s: vec![1..MAX],
         },
         &mut a_paths,
     );
 
-    let a_paths = a_paths.into_iter().map(|r| range_intersect(&r.x));
+    // let a_paths: AcceptRange = a_paths
+    let a_paths: u64 = a_paths
+        .into_iter()
+        .map(|r| AcceptRange {
+            x: range_intersect(&r.x),
+            m: range_intersect(&r.m),
+            a: range_intersect(&r.a),
+            s: range_intersect(&r.s),
+        })
+        .inspect(|r| {
+            dbg!(r);
+        })
+        // .reduce(|r1, r2| AcceptRange {
+        //     x: range_intersect(&[r1.x, r2.x]),
+        //     m: range_intersect(&[r1.m, r2.m]),
+        //     a: range_intersect(&[r1.a, r2.a]),
+        //     s: range_intersect(&[r1.s, r2.s]),
+        // })
+        // .unwrap();
+        .map(|r| {
+            (r.x.try_len().unwrap()
+                * r.m.try_len().unwrap()
+                * r.a.try_len().unwrap()
+                * r.s.try_len().unwrap()) as u64
+        })
+        .sum::<u64>();
 
-    println!("{a_paths:#?}");
+    dbg!(&a_paths);
 
-    todo!("working on it...");
+    println!("167409079868000");
+    a_paths
 }
 
-fn range_intersect(ranges: &Vec<Range<u64>>) -> Range<u64> {
+fn range_intersect(ranges: &[Range<u64>]) -> Range<u64> {
     let out = ranges
+        .to_owned()
         .clone()
         .into_iter()
         .reduce(|acc, range| {
@@ -291,10 +338,10 @@ fn range_intersect(ranges: &Vec<Range<u64>>) -> Range<u64> {
             if start < end {
                 start..end
             } else {
-                0..0
+                1..MAX
             }
         })
-        .unwrap_or(0..0);
+        .unwrap_or(1..MAX);
     out
 }
 
@@ -303,15 +350,21 @@ fn range_intersect(ranges: &Vec<Range<u64>>) -> Range<u64> {
 fn dfs(
     wfs: &IndexMap<String, Workflow>,
     wf: &str,
-    range: AcceptRange,
-    a_paths: &mut Vec<AcceptRange>,
+    ranges: AcceptRanges,
+    a_paths: &mut Vec<AcceptRanges>,
 ) {
-    println!("in workflow {}", wf);
+    if wf == "R" {
+        println!("skipping workflow {}", wf);
+        return;
+    } else {
+        println!("in workflow {}", wf);
+    }
     if let Some(wf) = wfs.get(wf) {
-        let mut range = range.clone();
+        let mut range = ranges.clone();
+        let mut wf_range = AcceptRange::new();
         for req in &wf.reqs {
-            // if req.cmp == Ordering::Equal {
-            // } else {
+            let mut req_range = AcceptRange::new();
+            // if req.cmp != Ordering::Equal {
             //     match req.part_type {
             //         PartType::XCool => range.x -= req.mag,
             //         PartType::Musical => range.m -= req.mag,
@@ -319,40 +372,38 @@ fn dfs(
             //         PartType::Shiny => range.s -= req.mag,
             //     }
             // }
+            match (req.part_type, req.cmp) {
+                (PartType::XCool, Ordering::Less) => req_range.x = 0..req.mag - 1,
+                (PartType::XCool, Ordering::Greater) => req_range.x = req.mag + 1..MAX,
+                (PartType::Musical, Ordering::Less) => req_range.m = 0..req.mag - 1,
+                (PartType::Musical, Ordering::Greater) => req_range.m = req.mag + 1..MAX,
+                (PartType::Aero, Ordering::Less) => req_range.a = 0..req.mag - 1,
+                (PartType::Aero, Ordering::Greater) => req_range.a = req.mag + 1..MAX,
+                (PartType::Shiny, Ordering::Less) => req_range.s = 0..req.mag - 1,
+                (PartType::Shiny, Ordering::Greater) => req_range.s = req.mag + 1..MAX,
+                (_, _) => {}
+            }
 
-            println!("  req {}", req);
+            println!("  {} req {}", wf.name, req);
             // print if final, otherwise add to search
             if req.dst == "A" {
                 // if Accept was reached by the last rule, no range change
                 if req.cmp == Ordering::Equal {
-                    println!("  complete: {range:?}");
+                    println!("    complete: {range:#?}");
                     a_paths.push(range.clone());
                 } else {
-                    match (req.part_type, req.cmp) {
-                        (PartType::XCool, Ordering::Less) => range.x.push(0..req.mag),
-                        (PartType::XCool, Ordering::Greater) => range.x.push(req.mag..MAX),
-                        (PartType::Musical, Ordering::Less) => range.m.push(0..req.mag),
-                        (PartType::Musical, Ordering::Greater) => range.m.push(req.mag..MAX),
-                        (PartType::Aero, Ordering::Less) => range.a.push(0..req.mag),
-                        (PartType::Aero, Ordering::Greater) => range.a.push(req.mag..MAX),
-                        (PartType::Shiny, Ordering::Less) => range.s.push(0..req.mag),
-                        (PartType::Shiny, Ordering::Greater) => range.s.push(req.mag..MAX),
-                        (_, _) => {}
-                    }
-                    // match req.part_type {
-                    //     PartType::XCool => range.x -= req.mag,
-                    //     PartType::Musical => range.m -= req.mag,
-                    //     PartType::Aero => range.a -= req.mag,
-                    //     PartType::Shiny => range.s -= req.mag,
-                    // }
-                    // println!("  complete: {range:?}");
-                    println!("  complete: {range:?}");
+                    println!("    complete: {range:?}");
                     a_paths.push(range.clone());
                 }
             } else {
                 // not yet complete, keep searching
                 dfs(wfs, &req.dst, range.clone(), a_paths);
             }
+
+            range.x.push(req_range.x);
+            range.m.push(req_range.m);
+            range.a.push(req_range.a);
+            range.s.push(req_range.s);
         }
     }
 }
